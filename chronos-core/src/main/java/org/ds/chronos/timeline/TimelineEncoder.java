@@ -6,7 +6,7 @@ import me.prettyprint.hector.api.beans.HColumn;
 
 /**
  * 
- * @author Dan
+ * @author Dan Simpson
  *
  * @param <T>
  */

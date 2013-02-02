@@ -11,47 +11,58 @@ import org.ds.chronos.timeline.TimelineDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JsonTimelineDecoder<T extends Timestamped> implements TimelineDecoder<T> {
+/**
+ * A Timeline decoder which converts stored JSON into
+ * objects of generic type.
+ * 
+ * @author Dan Simpson
+ *
+ * @param <T>
+ */
+public class JsonTimelineDecoder<T extends Timestamped> implements
+    TimelineDecoder<T> {
 
-	private static final Logger log = LoggerFactory.getLogger(JsonTimelineEncoder.class);
-	private static final ObjectMapper mapper = new ObjectMapper();
-	static {
-		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-	}
-	
-	private TypeReference<T> typeRef;
-	
-	public JsonTimelineDecoder(TypeReference<T> typeRef) {
-		this.typeRef = typeRef;
-	}
-	
-	private Iterator<HColumn<Long, byte[]>> upstream;
-	
-	@Override
-	public boolean hasNext() {
-		return upstream.hasNext();
-	}
+  private static final Logger log = LoggerFactory
+      .getLogger(JsonTimelineEncoder.class);
+  private static final ObjectMapper mapper = new ObjectMapper();
+  static {
+    mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
+        false);
+  }
 
-	@Override
-	public T next() {
-		HColumn<Long, byte[]> column = upstream.next();
-		T item = null;
-		try {
-			item = mapper.readValue(column.getValue(), typeRef);
-			item.setTimestamp(column.getName());
-		} catch (Throwable t) {
-			log.error("Error decoding column", t);
-		}
-		return item;
-	}
+  private TypeReference<T> typeRef;
 
-	@Override
-	public void remove() {
-	}
+  public JsonTimelineDecoder(TypeReference<T> typeRef) {
+    this.typeRef = typeRef;
+  }
 
-	@Override
-	public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
-		upstream = input;
-	}
+  private Iterator<HColumn<Long, byte[]>> upstream;
+
+  @Override
+  public boolean hasNext() {
+    return upstream.hasNext();
+  }
+
+  @Override
+  public T next() {
+    HColumn<Long, byte[]> column = upstream.next();
+    T item = null;
+    try {
+      item = mapper.readValue(column.getValue(), typeRef);
+      item.setTimestamp(column.getName());
+    } catch (Throwable t) {
+      log.error("Error decoding column", t);
+    }
+    return item;
+  }
+
+  @Override
+  public void remove() {
+  }
+
+  @Override
+  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+    upstream = input;
+  }
 
 }

@@ -18,82 +18,85 @@ import org.ds.chronos.api.Chronicle;
 
 /**
  * 
- * A chronicle where each event is a column on a single row
- * in cassandra.
+ * A chronicle where each event is a column on a single row in cassandra.
  * 
- * @author Dan
- *
+ * @author Dan Simpson
+ * 
  */
 public class CassandraChronicle extends Chronicle {
 
-	protected String key;
-	protected Keyspace keyspace;
-	protected ColumnFamilyTemplate<String, Long> template;
+  protected String key;
+  protected Keyspace keyspace;
+  protected ColumnFamilyTemplate<String, Long> template;
 
-	public CassandraChronicle(Keyspace keyspace,
-			ColumnFamilyTemplate<String, Long> template, String key) {
-		this.keyspace = keyspace;
-		this.template = template;
-		this.key = key;
-	}
+  public CassandraChronicle(Keyspace keyspace,
+      ColumnFamilyTemplate<String, Long> template, String key) {
+    this.keyspace = keyspace;
+    this.template = template;
+    this.key = key;
+  }
 
-	@Override
-	public void add(HColumn<Long, byte[]> column) {
-		ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
-		updater.setColumn(column);
-		template.update(updater);
-	}
+  @Override
+  public void add(HColumn<Long, byte[]> column) {
+    ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
+    updater.setColumn(column);
+    template.update(updater);
+  }
 
-	@Override
-	public void add(Iterator<HColumn<Long, byte[]>> items, int pageSize) {
-		ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
-		int count = 0;
-		while(items.hasNext()) {
-			HColumn<Long, byte[]> column = items.next();
-			updater.setColumn(column);
-			if (++count % pageSize == 0) {
-				template.update(updater);
-			}	
-		}
-		template.update(updater);
-	}
+  @Override
+  public void add(Iterator<HColumn<Long, byte[]>> items, int pageSize) {
+    ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
+    int count = 0;
+    while (items.hasNext()) {
+      HColumn<Long, byte[]> column = items.next();
+      updater.setColumn(column);
+      if (++count % pageSize == 0) {
+        template.update(updater);
+      }
+    }
+    template.update(updater);
+  }
 
-	@Override
-	public long getNumEvents(long t1, long t2) {
-		assert(t1 <= t2);
-		return template.countColumns(key, t1, t2, Integer.MAX_VALUE);
-	}
-	
-	@Override
-	public boolean isEventRecorded(long time) {
-		ColumnQuery<String, Long, byte[]> columnQuery =
-			    HFactory.createColumnQuery(keyspace, StringSerializer.get(), LongSerializer.get(), BytesArraySerializer.get());
-		columnQuery.setColumnFamily(template.getColumnFamily()).setKey(key).setName(time);
-		return columnQuery.execute().get() != null;
-	}
+  @Override
+  public long getNumEvents(long t1, long t2) {
+    assert (t1 <= t2);
+    return template.countColumns(key, t1, t2, Integer.MAX_VALUE);
+  }
 
-	@Override
-	public void delete() {
-		template.deleteRow(key);
-	}
-	
-	@Override
-	public Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2, int pageSize) {
-		SliceQuery<String, Long, byte[]> query = HFactory.createSliceQuery(
-				keyspace, StringSerializer.get(), LongSerializer.get(), BytesArraySerializer.get());		
-		query.setColumnFamily(template.getColumnFamily());
-		query.setKey(key);
-		query.setRange(t1, t2, t1 > t2, pageSize);
-		return new ColumnSliceIterator<String, Long, byte[]>(query, t1, t2, t1 > t2, pageSize);
-	}
+  @Override
+  public boolean isEventRecorded(long time) {
+    ColumnQuery<String, Long, byte[]> columnQuery = HFactory.createColumnQuery(
+        keyspace, StringSerializer.get(), LongSerializer.get(),
+        BytesArraySerializer.get());
+    columnQuery.setColumnFamily(template.getColumnFamily()).setKey(key)
+        .setName(time);
+    return columnQuery.execute().get() != null;
+  }
 
-	@Override
-	public void deleteRange(long t1, long t2) {
-		assert(t1 <= t2);
-		Iterator<HColumn<Long, byte[]>> range = getRange(t1, t2);
-		while(range.hasNext()) {
-			template.deleteColumn(key, range.next().getName());
-		}
-	}
+  @Override
+  public void delete() {
+    template.deleteRow(key);
+  }
+
+  @Override
+  public Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2, int pageSize) {
+    SliceQuery<String, Long, byte[]> query = HFactory.createSliceQuery(
+        keyspace, StringSerializer.get(), LongSerializer.get(),
+        BytesArraySerializer.get());
+    query.setColumnFamily(template.getColumnFamily());
+    query.setKey(key);
+    query.setRange(t1, t2, t1 > t2, pageSize);
+    return new ColumnSliceIterator<String, Long, byte[]>(query, t1, t2,
+        t1 > t2, pageSize);
+  }
+
+  @Override
+  public void deleteRange(long t1, long t2) {
+    assert (t1 <= t2);
+    Iterator<HColumn<Long, byte[]>> range = getRange(t1, t2);
+    while (range.hasNext()) {
+      template.deleteColumn(key, range.next().getName());
+    }
+  }
 
 }

@@ -15,37 +15,36 @@ import org.ds.chronos.timeline.Timeline;
  */
 public class JsonTimelineFactory {
 
-	private Chronos chronos;
+  private Chronos chronos;
 
-	public JsonTimelineFactory(Chronos chronos) {
-		this.chronos = chronos;
-	}
+  public JsonTimelineFactory(Chronos chronos) {
+    this.chronos = chronos;
+  }
 
-	/**
-	 * Create a Timeline for storing json objects
-	 * 
-	 * @param key
-	 * @return
-	 * @throws ChronosException
-	 */
-	public <T extends Timestamped> Timeline<T> createTimeline(String key,
-			TypeReference<T> ref) throws ChronosException {
-		return chronos.getTimeline(key, new JsonTimelineEncoder<T>(),
-				new JsonTimelineDecoder<T>(ref));
-	}
+  /**
+   * Create a Timeline for storing json objects
+   * 
+   * @param key
+   * @return
+   * @throws ChronosException
+   */
+  public <T extends Timestamped> Timeline<T> createTimeline(String key,
+      TypeReference<T> ref) throws ChronosException {
+    return chronos.getTimeline(key, new JsonTimelineEncoder<T>(),
+        new JsonTimelineDecoder<T>(ref));
+  }
 
-	/**
-	 * Create a Timeline for storing json object with paritioning
-	 * 
-	 * @param key
-	 * @param period
-	 * @return
-	 * @throws ChronosException
-	 */
-	public <T extends Timestamped> Timeline<T> createTimeline(String key,
-			PartitionPeriod period, TypeReference<T> ref)
-			throws ChronosException {
-		return chronos.getTimeline(key, new JsonTimelineEncoder<T>(),
-				new JsonTimelineDecoder<T>(ref), period);
-	}
+  /**
+   * Create a Timeline for storing json object with paritioning
+   * 
+   * @param key
+   * @param period
+   * @return
+   * @throws ChronosException
+   */
+  public <T extends Timestamped> Timeline<T> createTimeline(String key,
+      PartitionPeriod period, TypeReference<T> ref) throws ChronosException {
+    return chronos.getTimeline(key, new JsonTimelineEncoder<T>(),
+        new JsonTimelineDecoder<T>(ref), period);
+  }
 }

@@ -14,37 +14,37 @@ import org.junit.BeforeClass;
 
 public class TestBaseWithCassandra extends TestBase {
 
-	protected static Cluster cluster;
-	protected static final String clusterName = "hydra";
-	protected static final String keyspaceName = "chronostests";
-	protected static Keyspace keyspace;
+  protected static Cluster cluster;
+  protected static final String clusterName = "hydra";
+  protected static final String keyspaceName = "chronostests";
+  protected static Keyspace keyspace;
 
-	@BeforeClass
-	public static void setup() {		
-		if(cluster == null) {
-			cluster = HFactory.getOrCreateCluster(clusterName, "localhost:9160");
-			
-			KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
-			
-			if(ksDef != null) {
-				List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
-				for(ColumnFamilyDefinition cfDef: cfDefs) {
-					cluster.truncate(keyspaceName, cfDef.getName());
-					cluster.dropColumnFamily(keyspaceName, cfDef.getName());
-				}
-				
-				cluster.dropKeyspace(keyspaceName, true);
-			}
-			
-			cluster.addKeyspace(HFactory.createKeyspaceDefinition(keyspaceName), true);
-			
-			keyspace = HFactory.createKeyspace(keyspaceName, cluster);
-		}
-	}
+  @BeforeClass
+  public static void setup() {
+    if (cluster == null) {
+      cluster = HFactory.getOrCreateCluster(clusterName, "localhost:9160");
 
-	public Chronos getChronos(String cfName) throws ChronosException {
-		return new Chronos(cluster, keyspace, cfName);
-	}
+      KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
 
+      if (ksDef != null) {
+        List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
+        for (ColumnFamilyDefinition cfDef : cfDefs) {
+          cluster.truncate(keyspaceName, cfDef.getName());
+          cluster.dropColumnFamily(keyspaceName, cfDef.getName());
+        }
+
+        cluster.dropKeyspace(keyspaceName, true);
+      }
+
+      cluster
+          .addKeyspace(HFactory.createKeyspaceDefinition(keyspaceName), true);
+
+      keyspace = HFactory.createKeyspace(keyspaceName, cluster);
+    }
+  }
+
+  public Chronos getChronos(String cfName) throws ChronosException {
+    return new Chronos(cluster, keyspace, cfName);
+  }
 
 }

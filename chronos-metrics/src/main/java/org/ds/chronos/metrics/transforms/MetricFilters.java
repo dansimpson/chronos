@@ -3,13 +3,20 @@ package org.ds.chronos.metrics.transforms;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.ds.chronos.metrics.MetricSummary;
 import org.ds.chronos.metrics.Metric;
+import org.ds.chronos.metrics.MetricSummary;
 import org.ds.chronos.timeline.stream.DataStreamAggregator.Aggregator;
 import org.ds.chronos.timeline.stream.DataStreamFilter.FilterFn;
 import org.ds.chronos.timeline.stream.DataStreamMap.MapFn;
 import org.ds.chronos.timeline.stream.DataStreamTransform.TransformFn;
 
+/**
+ * 
+ * Factory for creating filters, maps, and aggregators.
+ * 
+ * @author Dan Simpson
+ *
+ */
 public class MetricFilters {
 
 	public static final FilterFn<Metric> gte(final float v) {

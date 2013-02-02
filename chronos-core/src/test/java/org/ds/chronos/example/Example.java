@@ -24,83 +24,84 @@ import org.ds.support.TestEncoder;
 @SuppressWarnings("unused")
 public class Example {
 
-	public static void main(String[] args) throws ChronosException {
-		Calendar calendar = Calendar.getInstance();
-		
-		Cluster cluster = HFactory.getOrCreateCluster("chronos", "localhost:9160");
-		if (cluster.describeKeyspace("chronos") == null) {
-		  cluster.addKeyspace(HFactory.createKeyspaceDefinition("chronos"), true);
-		}
-		Keyspace keyspace = HFactory.createKeyspace("chronos", cluster);
+  public static void main(String[] args) throws ChronosException {
+    Calendar calendar = Calendar.getInstance();
 
-		// Create chronos instance for the column family metrics to use
-		// as a factory for accessing Chronicles or Timelines
-		Chronos chronos = new Chronos(cluster, keyspace, "metrics");
-		
-		/////////////////////
-		
-		Chronicle chronicle = chronos.getChronicle("site-445");
+    Cluster cluster = HFactory.getOrCreateCluster("chronos", "localhost:9160");
+    if (cluster.describeKeyspace("chronos") == null) {
+      cluster.addKeyspace(HFactory.createKeyspaceDefinition("chronos"), true);
+    }
+    Keyspace keyspace = HFactory.createKeyspace("chronos", cluster);
 
-		/////////////////////
-		
-		Chronicle monthly = chronos.getChronicle("site-445", PartitionPeriod.MONTH);
-		
-		/////////////////////
-		
-		chronicle.add(new Date(), "log entry");
-		chronicle.add(System.currentTimeMillis(), new byte[] { 0x10, 0x50 });
+    // Create chronos instance for the column family metrics to use
+    // as a factory for accessing Chronicles or Timelines
+    Chronos chronos = new Chronos(cluster, keyspace, "metrics");
 
-		/////////////////////
-		
-		ChronicleBatch batch = new ChronicleBatch();
-		batch.add(System.currentTimeMillis() - 100, "1");
-		batch.add(System.currentTimeMillis() - 50, "2");
-		batch.add(System.currentTimeMillis() - 20, "1");		
-		chronicle.add(batch);
+    // ///////////////////
 
-		/////////////////////
-		
-		long t1 = System.currentTimeMillis() - 500;
-		long t2 = System.currentTimeMillis();
+    Chronicle chronicle = chronos.getChronicle("site-445");
 
-		Iterator<HColumn<Long, byte[]>> stream = chronicle.getRange(t1, t2);
-		while(stream.hasNext()) {
-		  HColumn<Long, byte[]> column = stream.next();
-		  Long time = column.getName();
-		  String data = new String(column.getValue(), Chronicle.CHARSET);
-		}
-		
-		/////////////////////
-		
-		long count = chronicle.getNumEvents(t1, t2);
-		
-		/////////////////////
-		
-		chronicle.deleteRange(t1, t2);
-		
-		/////////////////////
-		
-		boolean recorded = chronicle.isEventRecorded(t1);
-		
-		/////////////////////
-		/////////////////////
-		
-		Timeline<TestData> timeline = chronos.getTimeline("site-445-data", new TestEncoder(), new TestDecoder());
-		
-		TestData data = new TestData();
-		data.time = new Date().getTime();
-		data.type = 0x04;
-		data.value = 15d;
-		timeline.add(data);
-		
-		List<TestData> collection = new ArrayList<TestData>();
-		for(int i = 0;i < 10;i++) {
-			data = new TestData();
-			data.time = new Date().getTime();
-			data.type = 0x04;
-			data.value = 15d;
-			collection.add(data);
-		}
-		timeline.add(collection);
-	}
+    // ///////////////////
+
+    Chronicle monthly = chronos.getChronicle("site-445", PartitionPeriod.MONTH);
+
+    // ///////////////////
+
+    chronicle.add(new Date(), "log entry");
+    chronicle.add(System.currentTimeMillis(), new byte[] { 0x10, 0x50 });
+
+    // ///////////////////
+
+    ChronicleBatch batch = new ChronicleBatch();
+    batch.add(System.currentTimeMillis() - 100, "1");
+    batch.add(System.currentTimeMillis() - 50, "2");
+    batch.add(System.currentTimeMillis() - 20, "1");
+    chronicle.add(batch);
+
+    // ///////////////////
+
+    long t1 = System.currentTimeMillis() - 500;
+    long t2 = System.currentTimeMillis();
+
+    Iterator<HColumn<Long, byte[]>> stream = chronicle.getRange(t1, t2);
+    while (stream.hasNext()) {
+      HColumn<Long, byte[]> column = stream.next();
+      Long time = column.getName();
+      String data = new String(column.getValue(), Chronicle.CHARSET);
+    }
+
+    // ///////////////////
+
+    long count = chronicle.getNumEvents(t1, t2);
+
+    // ///////////////////
+
+    chronicle.deleteRange(t1, t2);
+
+    // ///////////////////
+
+    boolean recorded = chronicle.isEventRecorded(t1);
+
+    // ///////////////////
+    // ///////////////////
+
+    Timeline<TestData> timeline = chronos.getTimeline("site-445-data",
+        new TestEncoder(), new TestDecoder());
+
+    TestData data = new TestData();
+    data.time = new Date().getTime();
+    data.type = 0x04;
+    data.value = 15d;
+    timeline.add(data);
+
+    List<TestData> collection = new ArrayList<TestData>();
+    for (int i = 0; i < 10; i++) {
+      data = new TestData();
+      data.time = new Date().getTime();
+      data.type = 0x04;
+      data.value = 15d;
+      collection.add(data);
+    }
+    timeline.add(collection);
+  }
 }

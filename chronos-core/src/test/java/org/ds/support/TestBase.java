@@ -6,9 +6,9 @@ import org.junit.BeforeClass;
 
 public class TestBase {
 
-	@BeforeClass
-	public static void setupBasic() {
-		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-	}
-	
+  @BeforeClass
+  public static void setupBasic() {
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+  }
+
 }
