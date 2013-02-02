@@ -2,9 +2,8 @@ Chronos
 =======
 
 A small collection of abstractions for storing, traversing, and processing
-timeseries data in cassandra with hector.
+timeseries data in cassandra with hector which features:
 
-Features:
 * Events stored as a LongType,ByteArray column
 * Traverse, count, and delete items for a given time frame
 * Bulk inserts/updates
@@ -258,13 +257,99 @@ timeline.add(buildTestDataCollection().iterator(), 5);
 The above shows the use of iterators, which we can take advantage
 of using timelines as an input for transfer.
 
-##### Streaming and processing
+##### Stream processing
+
+Processing the data stream is possible using 3 function-like
+interfaces:
+
+* map(object) -> object
+* filter(object) -> boolean
+* aggregate, which has 2 methods: 
+  * feed(object) -> boolean (ready to flush)
+  * flush() -> object
+
+Example of a map function which plucks just the tag from the stream
+of Observation objects.
 
 ```java
+MapFn<Observation, String> tagPluck = new MapFn<Observation, String>() {
+  public String map(Observation o) {
+    return p.getTag();
+  }
+};
 ```
+
+If the return type matches the input type, use a transform:
+
+```java
+new TransformFn<Observation>() {}
+```
+
+Example of a filter, which only emits observations where the tag = "spike"
+
+```java
+FilterFn<Observation> tagFilter = new FilterFn<Observation>() {
+  public boolean check(Observation o) {
+    return "spike".equals(p.getTag());
+  }
+};
+```
+
+And finally, an aggregator which gives us windowed mean for
+every 100 observations:
+
+```java
+Aggregator<Observation, Double> windowMean = new Aggregator<Observation, Double>() {
+
+  private double sum = 0d;
+  private int count = 0;
+  
+  @Override
+  public boolean feed(Observation o) {
+    sum += o.getValue();
+    return ++count == 100;
+  }
+
+  @Override
+  public Double flush() {
+    if(count == 0) {
+      return null;
+    }
+
+    double result = sum / count;
+    sum = 0d;
+    count = 0;
+    return result;
+  }
+
+};
+```
+
+Note: It's important that the flush method returns null when there
+is nothing of value.
+
+
+#### Stiching it together
+
+With the DataStream, it's possible to compose multi stage pipelines
+of iterators which apply the map functions and emit a result stream.
+
+```java
+Iterable<Double> stream = timeline.query(begin, end, Double.class)
+  .filter(tagFilter)
+  .aggregate(windowMean)
+  .stream();
+
+for(Double d: stream) {
+  out.write(d);
+}
+```
+
 
 Maven
 -----
+
+Maven central or other repo is planned.
 
 ```xml
 <dependency>
