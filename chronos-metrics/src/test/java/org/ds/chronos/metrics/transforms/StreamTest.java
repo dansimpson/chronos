@@ -72,9 +72,12 @@ public class StreamTest {
         .query(begin, end, MetricSummary.class).transform(sma(30))
         .filter(gte(0f)).aggregate(summarize("1h")).stream();
 
-    for (MetricSummary metric : stream) {
-      System.out.println(metric.getStandardDeviation());
+    int count = 0;
+    for (@SuppressWarnings("unused") MetricSummary metric : stream) {
+      count++;
     }
+    
+    Assert.assertEquals(350, count, 10);
   }
 
 }

@@ -9,30 +9,30 @@ import org.ds.chronos.util.Duration;
  * Duration based aggregator for a stream of metrics.
  * 
  * @author Dan Simpson
- *
+ * 
  */
 public class MetricSummarizer implements Aggregator<Metric, MetricSummary> {
 
-	private MetricSummary aggregate = new MetricSummary();
-	private Duration duration;
-	
-	public MetricSummarizer(String duration) {
-		this.duration = new Duration(duration);
-	}
-	
-	public MetricSummarizer(Duration duration) {
-		this.duration = duration;
-	}
-	
-	@Override
-	public boolean feed(Metric metric) {
-		aggregate.add(metric);
-		return aggregate.getDuration() > duration.getMillis();
-	}
+  private MetricSummary aggregate = new MetricSummary();
+  private Duration duration;
 
-	@Override
-	public MetricSummary flush() {
-		return aggregate.cloneAndReset();
-	}
+  public MetricSummarizer(String duration) {
+    this.duration = new Duration(duration);
+  }
+
+  public MetricSummarizer(Duration duration) {
+    this.duration = duration;
+  }
+
+  @Override
+  public boolean feed(Metric metric) {
+    aggregate.add(metric);
+    return aggregate.getDuration() > duration.getMillis();
+  }
+
+  @Override
+  public MetricSummary flush() {
+    return aggregate.cloneAndReset();
+  }
 
 }

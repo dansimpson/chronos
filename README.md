@@ -355,7 +355,7 @@ Maven central or other repo is planned.
 <dependency>
   <groupId>org.ds</groupId>
   <artifactId>chronos</artifactId>
-  <version>1.0.0</version>
+  <version>${chronos.version}</version>
 </dependency>
 ```
 

@@ -141,8 +141,17 @@ public class Duration {
    *          the date
    * @return justified date
    */
-  public Date justifyPast(Date input) {
-    return new Date(input.getTime() - (input.getTime() % millis));
+  public final Date justifyPast(Date input) {
+    return new Date(justifyPast(input.getTime()));
+  }
+
+  /**
+   * @param input
+   *          timetamp
+   * @return
+   */
+  public final long justifyPast(long input) {
+    return input - (input % millis);
   }
 
   /**
@@ -152,12 +161,21 @@ public class Duration {
    * @param input
    * @return
    */
-  public Date justifyPastOrNow(Date input) {
-    long diff = (input.getTime() % millis);
+  public final Date justifyPastOrNow(Date input) {
+    return new Date(justifyPastOrNow(input.getTime()));
+  }
+
+  /**
+   * @param input
+   *          timetamp
+   * @return
+   */
+  public final long justifyPastOrNow(long input) {
+    long diff = (input % millis);
     if (diff == millis) {
       return input;
     }
-    return new Date(input.getTime() - diff);
+    return input - diff;
   }
 
   /**

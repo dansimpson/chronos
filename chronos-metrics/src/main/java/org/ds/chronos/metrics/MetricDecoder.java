@@ -1,10 +1,9 @@
-package org.ds.chronos.metrics.codec;
+package org.ds.chronos.metrics;
 
 import java.util.Iterator;
 
 import me.prettyprint.hector.api.beans.HColumn;
 
-import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.TimelineDecoder;
 
 /**

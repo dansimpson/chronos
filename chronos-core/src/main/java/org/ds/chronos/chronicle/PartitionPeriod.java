@@ -79,6 +79,18 @@ public enum PartitionPeriod {
     calendar.set(Calendar.SECOND, 0);
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.setTimeZone(TZ);
+    
+    // We need to fetch every key which could have data.  If we
+    // have a query that falls on the 8th, this will account for
+    // that, and make sure we get all keys
+    if(this == MONTH) {
+      calendar.set(Calendar.DAY_OF_MONTH, 1);
+    }
+    
+    if(this == YEAR) {
+      calendar.set(Calendar.MONTH, 0);
+    }
+    
     return calendar;
   }
 }

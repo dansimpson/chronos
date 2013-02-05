@@ -1,18 +1,17 @@
-package org.ds.chronos.metrics.codec;
+package org.ds.chronos.metrics;
 
 import java.util.Iterator;
 
 import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.factory.HFactory;
 
-import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.TimelineEncoder;
 
 /**
- * Streaming encoder for metrics to be stored ona  timeline
+ * Streaming encoder for metrics to be stored on a timeline
  * 
  * @author Dan Simpson
- *
+ * 
  */
 public class MetricEncoder implements TimelineEncoder<Metric> {
 

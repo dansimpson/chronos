@@ -2,11 +2,10 @@ package org.ds.chronos.metrics;
 
 /**
  * 
- * Metric summary for aggregating values into a few basic
- * statistics.
+ * Metric summary for aggregating values into a few basic statistics.
  * 
  * @author Dan Simpson
- *
+ * 
  */
 public class MetricSummary {
 
