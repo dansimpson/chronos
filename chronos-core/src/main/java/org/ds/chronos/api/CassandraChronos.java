@@ -1,7 +1,5 @@
 package org.ds.chronos.api;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import me.prettyprint.cassandra.serializers.LongSerializer;
@@ -10,7 +8,6 @@ import me.prettyprint.cassandra.service.template.ColumnFamilyTemplate;
 import me.prettyprint.cassandra.service.template.ThriftColumnFamilyTemplate;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
@@ -31,22 +28,22 @@ import org.slf4j.LoggerFactory;
  * @author Dan Simpson
  * 
  */
-public class Chronos {
+public class CassandraChronos {
 
-  private static final Logger log = LoggerFactory.getLogger(Chronos.class);
+  private static final Logger log = LoggerFactory.getLogger(CassandraChronos.class);
 
   private Cluster cluster;
   private Keyspace keyspace;
   private ColumnFamilyTemplate<String, Long> template;
 
-  public Chronos(Cluster cluster, Keyspace keyspace, String cfName)
+  public CassandraChronos(Cluster cluster, Keyspace keyspace, String cfName)
       throws ChronosException {
     this.cluster = cluster;
     this.keyspace = keyspace;
     this.template = createTemplate(cfName);
   }
 
-  public Chronos(Cluster cluster, Keyspace keyspace,
+  public CassandraChronos(Cluster cluster, Keyspace keyspace,
       ColumnFamilyTemplate<String, Long> template) {
     this.cluster = cluster;
     this.keyspace = keyspace;
@@ -120,21 +117,6 @@ public class Chronos {
 
     return new ThriftColumnFamilyTemplate<String, Long>(keyspace, cfName,
         StringSerializer.get(), LongSerializer.get());
-  }
-
-  /**
-   * Convert a column iterator to list
-   * 
-   * @param itr
-   * @return
-   */
-  public static List<HColumn<Long, byte[]>> toList(
-      Iterator<HColumn<Long, byte[]>> itr) {
-    List<HColumn<Long, byte[]>> columns = new ArrayList<HColumn<Long, byte[]>>();
-    while (itr.hasNext()) {
-      columns.add(itr.next());
-    }
-    return columns;
   }
 
 }

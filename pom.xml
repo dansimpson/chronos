@@ -12,6 +12,7 @@
     <url>https://github.com/dansimpson/chronos</url>
 
     <modules>
+        <module>chronos-api</module>
         <module>chronos-core</module>
         <module>chronos-metrics</module>
         <module>chronos-jackson</module>

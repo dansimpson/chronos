@@ -5,12 +5,6 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
-import org.ds.chronos.chronicle.CassandraChronicle;
-import org.ds.chronos.chronicle.PartitionPeriod;
-import org.ds.chronos.chronicle.PartitionedChronicle;
 import org.ds.chronos.timeline.Timeline;
 
 /**
@@ -43,7 +37,7 @@ public abstract class Chronicle {
    * 
    * @param column
    */
-  public abstract void add(HColumn<Long, byte[]> item);
+  public abstract void add(ChronologicalRecord item);
 
   /**
    * Add columns in batches
@@ -53,7 +47,7 @@ public abstract class Chronicle {
    * @param pageSize
    *          The number of columns to write per batch
    */
-  public abstract void add(Iterator<HColumn<Long, byte[]>> items, int pageSize);
+  public abstract void add(Iterator<ChronologicalRecord> items, int pageSize);
 
   /**
    * Add data with a given time stamp
@@ -62,7 +56,7 @@ public abstract class Chronicle {
    * @param data
    */
   public void add(long timestamp, byte[] data) {
-    add(HFactory.createColumn(timestamp, data));
+    add(new ChronologicalRecord(timestamp, data));
   }
 
   /**
@@ -72,7 +66,7 @@ public abstract class Chronicle {
    * @param data
    */
   public void add(long timestamp, ByteBuffer data) {
-    add(HFactory.createColumn(timestamp, data.array()));
+    add(new ChronologicalRecord(timestamp, data.array()));
   }
 
   /**
@@ -82,7 +76,7 @@ public abstract class Chronicle {
    * @param data
    */
   public void add(long timestamp, String data) {
-    add(HFactory.createColumn(timestamp, data.getBytes(CHARSET)));
+    add(new ChronologicalRecord(timestamp, data.getBytes(CHARSET)));
   }
 
   /**
@@ -119,7 +113,7 @@ public abstract class Chronicle {
    * 
    * @param items
    */
-  public void add(Iterator<HColumn<Long, byte[]>> items) {
+  public void add(Iterator<ChronologicalRecord> items) {
     add(items, WRITE_PAGE_SIZE);
   }
 
@@ -127,7 +121,7 @@ public abstract class Chronicle {
    * 
    * @param items
    */
-  public void add(Iterable<HColumn<Long, byte[]>> items) {
+  public void add(Iterable<ChronologicalRecord> items) {
     add(items.iterator(), WRITE_PAGE_SIZE);
   }
 
@@ -151,7 +145,7 @@ public abstract class Chronicle {
    *          the number of columns to fetch per batch
    * @return
    */
-  public abstract Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2,
+  public abstract Iterator<ChronologicalRecord> getRange(long t1, long t2,
       int pageSize);
 
   /**
@@ -162,7 +156,7 @@ public abstract class Chronicle {
    * @param t2
    * @return
    */
-  public Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2) {
+  public Iterator<ChronologicalRecord> getRange(long t1, long t2) {
     return getRange(t1, t2, READ_PAGE_SIZE);
   }
 
@@ -175,7 +169,7 @@ public abstract class Chronicle {
    * @param pageSize
    * @return
    */
-  public Iterator<HColumn<Long, byte[]>> getRange(Date beginTime, Date endTime) {
+  public Iterator<ChronologicalRecord> getRange(Date beginTime, Date endTime) {
     return getRange(beginTime.getTime(), endTime.getTime());
   }
 
@@ -189,7 +183,7 @@ public abstract class Chronicle {
    *          number of columns to fetch at a time
    * @return
    */
-  public Iterator<HColumn<Long, byte[]>> getRange(Date beginTime, Date endTime,
+  public Iterator<ChronologicalRecord> getRange(Date beginTime, Date endTime,
       int pageSize) {
     return getRange(beginTime.getTime(), endTime.getTime(), pageSize);
   }

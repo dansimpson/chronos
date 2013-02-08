@@ -1,4 +1,4 @@
-package org.ds.support;
+package org.ds.chronos.support;
 
 public class TestData {
 

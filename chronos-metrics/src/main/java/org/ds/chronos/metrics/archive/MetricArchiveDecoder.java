@@ -3,8 +3,7 @@ package org.ds.chronos.metrics.archive;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.TimelineDecoder;
 
@@ -18,7 +17,7 @@ import org.ds.chronos.timeline.TimelineDecoder;
  */
 public class MetricArchiveDecoder implements TimelineDecoder<Metric> {
 
-  private Iterator<HColumn<Long, byte[]>> input;
+  private Iterator<ChronologicalRecord> input;
 
   private long time;
   private long interval;
@@ -32,7 +31,7 @@ public class MetricArchiveDecoder implements TimelineDecoder<Metric> {
   public boolean hasNext() {
     if (buffer == null || !buffer.hasRemaining()) {
       if (input.hasNext()) {
-        HColumn<Long, byte[]> column = input.next();
+        ChronologicalRecord column = input.next();
         buffer = column.getValueBytes();
         time = buffer.getLong();
         interval = buffer.getLong();
@@ -55,7 +54,7 @@ public class MetricArchiveDecoder implements TimelineDecoder<Metric> {
   }
 
   @Override
-  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+  public void setInputStream(Iterator<ChronologicalRecord> input) {
     this.input = input;
   }
 

@@ -3,7 +3,7 @@ package org.ds.chronos.chronicle;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import me.prettyprint.hector.api.beans.HColumn;
+import org.ds.chronos.api.ChronologicalRecord;
 
 /**
  * An iterator of slice iterators used for traversing many columns on many rows.
@@ -11,11 +11,11 @@ import me.prettyprint.hector.api.beans.HColumn;
  * @author Dan Simpson
  * 
  */
-public class PartitionIterator implements Iterator<HColumn<Long, byte[]>> {
+public class PartitionIterator implements Iterator<ChronologicalRecord> {
 
-  private LinkedList<Iterator<HColumn<Long, byte[]>>> iterators;
+  private LinkedList<Iterator<ChronologicalRecord>> iterators;
 
-  public PartitionIterator(LinkedList<Iterator<HColumn<Long, byte[]>>> iterators) {
+  public PartitionIterator(LinkedList<Iterator<ChronologicalRecord>> iterators) {
     this.iterators = iterators;
   }
 
@@ -31,7 +31,7 @@ public class PartitionIterator implements Iterator<HColumn<Long, byte[]>> {
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     return iterators.getFirst().next();
   }
 

@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.TimeZone;
 
 import junit.framework.Assert;
-import me.prettyprint.hector.api.beans.HColumn;
 
 import org.ds.chronos.api.ChronicleBatch;
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.ChronosException;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.ds.chronos.chronicle.PartitionPeriod;
 import org.ds.chronos.chronicle.PartitionedChronicle;
 import org.ds.support.TestBaseWithCassandra;
@@ -42,7 +42,7 @@ public class ParitionedChronicleTest extends TestBaseWithCassandra {
 
     Date d2 = calendar.getTime();
 
-    List<HColumn<Long, byte[]>> items = Chronos.toList(chronicle.getRange(d1,
+    List<ChronologicalRecord> items = MemoryChronicle.toList(chronicle.getRange(d1,
         d2));
 
     Assert.assertEquals(5, items.size());
@@ -69,11 +69,11 @@ public class ParitionedChronicleTest extends TestBaseWithCassandra {
 
     chronicle.add(batch);
 
-    List<HColumn<Long, byte[]>> events = Chronos.toList(chronicle.getRange(d1,
+    List<ChronologicalRecord> events = MemoryChronicle.toList(chronicle.getRange(d1,
         calendar.getTime()));
 
     Assert.assertEquals(numSamples, events.size());
-    Assert.assertEquals(d1.getTime(), events.get(0).getName().longValue());
+    Assert.assertEquals(d1.getTime(), events.get(0).getTimestamp());
     Assert.assertEquals(numSamples,
         chronicle.getNumEvents(d1, calendar.getTime()));
   }
@@ -99,11 +99,11 @@ public class ParitionedChronicleTest extends TestBaseWithCassandra {
 
     chronicle.add(batch);
 
-    List<HColumn<Long, byte[]>> events = Chronos.toList(chronicle.getRange(
+    List<ChronologicalRecord> events = MemoryChronicle.toList(chronicle.getRange(
         calendar.getTime(), d1));
 
     Assert.assertEquals(numSamples, events.size());
-    Assert.assertEquals(calendar.getTime(), new Date(events.get(0).getName()));
+    Assert.assertEquals(calendar.getTime(), new Date(events.get(0).getTimestamp()));
   }
 
   @Test(timeout = 15000)
@@ -128,10 +128,10 @@ public class ParitionedChronicleTest extends TestBaseWithCassandra {
 
     chronicle.add(batch);
 
-    List<HColumn<Long, byte[]>> events = Chronos.toList(chronicle.getRange(d1,
+    List<ChronologicalRecord> events = MemoryChronicle.toList(chronicle.getRange(d1,
         d2));
     Assert.assertEquals(numSamples, events.size());
-    Assert.assertEquals(d1.getTime(), events.get(0).getName().longValue());
+    Assert.assertEquals(d1.getTime(), events.get(0).getTimestamp());
     Assert.assertEquals(numSamples,
         chronicle.getNumEvents(d1, calendar.getTime()));
   }
@@ -163,13 +163,13 @@ public class ParitionedChronicleTest extends TestBaseWithCassandra {
     chronicle.add(batch);
     chronicle.deleteRange(r1, r2);
 
-    List<HColumn<Long, byte[]>> events = Chronos.toList(chronicle.getRange(d1,
+    List<ChronologicalRecord> events = MemoryChronicle.toList(chronicle.getRange(d1,
         d2));
 
     Assert.assertEquals(numSamples - ((4 * 60) + 1), events.size());
     Assert.assertEquals(numSamples - ((4 * 60) + 1),
         chronicle.getNumEvents(d1, d2));
-    Assert.assertEquals(d1.getTime(), events.get(0).getName().longValue());
+    Assert.assertEquals(d1.getTime(), events.get(0).getTimestamp());
   }
 
   @Test

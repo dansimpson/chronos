@@ -6,9 +6,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
 /**
  * Utility for batch updates of events
  * 
@@ -17,7 +14,7 @@ import me.prettyprint.hector.api.factory.HFactory;
  */
 public class ChronicleBatch {
 
-  private List<HColumn<Long, byte[]>> columns = new ArrayList<HColumn<Long, byte[]>>();
+  private List<ChronologicalRecord> columns = new ArrayList<ChronologicalRecord>();
 
   public ChronicleBatch() {
   }
@@ -27,7 +24,7 @@ public class ChronicleBatch {
    * 
    * @param items
    */
-  public void add(HColumn<Long, byte[]> item) {
+  public void add(ChronologicalRecord item) {
     columns.add(item);
   }
   
@@ -38,7 +35,7 @@ public class ChronicleBatch {
    * @param data
    */
   public void add(long timestamp, byte[] data) {
-    add(HFactory.createColumn(timestamp, data));
+    add(new ChronologicalRecord(timestamp, data));
   }
 
   /**
@@ -48,7 +45,7 @@ public class ChronicleBatch {
    * @param data
    */
   public void add(long timestamp, ByteBuffer data) {
-    add(HFactory.createColumn(timestamp, data.array()));
+    add(new ChronologicalRecord(timestamp, data.array()));
   }
 
   /**
@@ -58,7 +55,7 @@ public class ChronicleBatch {
    * @param data
    */
   public void add(long timestamp, String data) {
-    add(HFactory.createColumn(timestamp, data.getBytes(Chronicle.CHARSET)));
+    add(new ChronologicalRecord(timestamp, data.getBytes(Chronicle.CHARSET)));
   }
 
   /**
@@ -91,7 +88,7 @@ public class ChronicleBatch {
     add(time.getTime(), data);
   }
 
-  public Iterator<HColumn<Long, byte[]>> iterator() {
+  public Iterator<ChronologicalRecord> iterator() {
     return columns.iterator();
   }
 }

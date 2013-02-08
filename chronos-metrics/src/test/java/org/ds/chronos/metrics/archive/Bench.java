@@ -9,7 +9,7 @@ import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.chronicle.PartitionPeriod;
 import org.ds.chronos.metrics.Metric;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 public class Bench {
 
   private static final Logger log = LoggerFactory.getLogger(Bench.class);
-  private static Chronos chronos;
+  private static CassandraChronos chronos;
 
   private static void setup(boolean reset) throws ChronosException {
     String keyspaceName = "chronosmetrics";
@@ -42,7 +42,7 @@ public class Bench {
     }
 
     Keyspace keyspace = HFactory.createKeyspace(keyspaceName, cluster);
-    chronos = new Chronos(cluster, keyspace, "metricsbench");
+    chronos = new CassandraChronos(cluster, keyspace, "metricsbench");
   }
 
   private static Iterator<Metric> generate(final long time, final long count,

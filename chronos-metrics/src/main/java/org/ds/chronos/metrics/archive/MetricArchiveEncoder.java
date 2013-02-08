@@ -3,9 +3,7 @@ package org.ds.chronos.metrics.archive;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.TimelineEncoder;
 import org.ds.chronos.util.Duration;
@@ -68,13 +66,13 @@ public class MetricArchiveEncoder implements TimelineEncoder<Metric> {
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     byte[] data = new byte[buffer.position()];
     buffer.rewind();
     buffer.get(data);
     buffer.rewind();
     count = 0;
-    return HFactory.createColumn(time, data);
+    return new ChronologicalRecord(time, data);
   }
 
   @Override

@@ -2,8 +2,7 @@ package org.ds.chronos.metrics;
 
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineDecoder;
 
 /**
@@ -14,7 +13,7 @@ import org.ds.chronos.timeline.TimelineDecoder;
  */
 public class MetricDecoder implements TimelineDecoder<Metric> {
 
-  private Iterator<HColumn<Long, byte[]>> upstream;
+  private Iterator<ChronologicalRecord> upstream;
 
   @Override
   public boolean hasNext() {
@@ -23,8 +22,8 @@ public class MetricDecoder implements TimelineDecoder<Metric> {
 
   @Override
   public Metric next() {
-    HColumn<Long, byte[]> item = upstream.next();
-    return new Metric(item.getName(), item.getValueBytes().getFloat());
+    ChronologicalRecord item = upstream.next();
+    return new Metric(item.getTimestamp(), item.getValueBytes().getFloat());
   }
 
   @Override
@@ -32,7 +31,7 @@ public class MetricDecoder implements TimelineDecoder<Metric> {
   }
 
   @Override
-  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+  public void setInputStream(Iterator<ChronologicalRecord> input) {
     upstream = input;
   }
 

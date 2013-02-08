@@ -4,12 +4,12 @@ import java.util.Date;
 import java.util.Iterator;
 
 import junit.framework.Assert;
-import me.prettyprint.hector.api.beans.HColumn;
 
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronicleBatch;
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.ChronosException;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.ds.support.TestBaseWithCassandra;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,38 +56,38 @@ public class CassandraChonicleTest extends TestBaseWithCassandra {
   @Test
   public void shouldGetSingleRange() throws ChronosException {
     chronicle.add(1000, "test");
-    Iterator<HColumn<Long, byte[]>> slice = chronicle.getRange(0, 2000);
+    Iterator<ChronologicalRecord> slice = chronicle.getRange(0, 2000);
 
     Assert.assertTrue(slice.hasNext());
-    HColumn<Long, byte[]> event = slice.next();
-    Assert.assertEquals(1000, event.getName().longValue());
-    Assert.assertEquals("test", new String(event.getValue(), Charsets.UTF_8));
+    ChronologicalRecord event = slice.next();
+    Assert.assertEquals(1000, event.getTimestamp());
+    Assert.assertEquals("test", new String(event.getData(), Charsets.UTF_8));
   }
 
   @Test
   public void shouldGetRange() throws ChronosException {
     chronicle.add(1000, "test");
     chronicle.add(2000, "test");
-    Iterator<HColumn<Long, byte[]>> slice = chronicle.getRange(1000, 3000);
+    Iterator<ChronologicalRecord> slice = chronicle.getRange(1000, 3000);
 
     Assert.assertTrue(slice.hasNext());
-    HColumn<Long, byte[]> event = slice.next();
+    ChronologicalRecord event = slice.next();
 
-    Assert.assertEquals(1000, event.getName().longValue());
-    Assert.assertEquals("test", new String(event.getValue(), Charsets.UTF_8));
+    Assert.assertEquals(1000, event.getTimestamp());
+    Assert.assertEquals("test", new String(event.getData(), Charsets.UTF_8));
   }
 
   @Test
   public void shouldGetRangeReversed() throws ChronosException {
     chronicle.add(1000, "test");
     chronicle.add(2000, "test");
-    Iterator<HColumn<Long, byte[]>> slice = chronicle.getRange(3000, 1000);
+    Iterator<ChronologicalRecord> slice = chronicle.getRange(3000, 1000);
 
     Assert.assertTrue(slice.hasNext());
-    HColumn<Long, byte[]> event = slice.next();
+    ChronologicalRecord event = slice.next();
 
-    Assert.assertEquals(2000, event.getName().longValue());
-    Assert.assertEquals("test", new String(event.getValue(), Charsets.UTF_8));
+    Assert.assertEquals(2000, event.getTimestamp());
+    Assert.assertEquals("test", new String(event.getData(), Charsets.UTF_8));
   }
 
   @Test
@@ -111,8 +111,8 @@ public class CassandraChonicleTest extends TestBaseWithCassandra {
     chronicle.deleteRange(0, 2000);
 
     Assert.assertEquals(2, chronicle.getNumEvents(0, 4000));
-    Assert.assertEquals(3000, Chronos.toList(chronicle.getRange(0, 4000))
-        .get(0).getName().longValue());
+    Assert.assertEquals(3000, MemoryChronicle.toList(chronicle.getRange(0, 4000))
+        .get(0).getTimestamp());
   }
 
   @Test

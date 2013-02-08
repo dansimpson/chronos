@@ -10,10 +10,10 @@ import java.util.Map.Entry;
 
 import me.prettyprint.cassandra.service.template.ColumnFamilyTemplate;
 import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.HColumn;
 
 import org.ds.chronos.api.Chronicle;
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.ChronologicalRecord;
+import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.timeline.Timeline;
 
 /**
@@ -30,7 +30,7 @@ import org.ds.chronos.timeline.Timeline;
  * 
  * @see Timeline
  * @see PartitionPeriod
- * @see Chronos#getChronicle(String, PartitionPeriod)
+ * @see CassandraChronos#getChronicle(String, PartitionPeriod)
  * 
  * @author Dan Simpson
  * 
@@ -53,8 +53,8 @@ public class PartitionedChronicle extends Chronicle {
   }
 
   @Override
-  public void add(HColumn<Long, byte[]> item) {
-    new CassandraChronicle(keyspace, template, getKeyName(item.getName()))
+  public void add(ChronologicalRecord item) {
+    new CassandraChronicle(keyspace, template, getKeyName(item.getTimestamp()))
         .add(item);
   }
 
@@ -64,31 +64,30 @@ public class PartitionedChronicle extends Chronicle {
    * @param columns
    */
   @Override
-  public void add(Iterator<HColumn<Long, byte[]>> columns, int pageSize) {
-    Map<String, List<HColumn<Long, byte[]>>> groups = new HashMap<String, List<HColumn<Long, byte[]>>>();
+  public void add(Iterator<ChronologicalRecord> columns, int pageSize) {
+    Map<String, List<ChronologicalRecord>> groups = new HashMap<String, List<ChronologicalRecord>>();
 
     Calendar date = Calendar.getInstance();
     while (columns.hasNext()) {
-      HColumn<Long, byte[]> column = columns.next();
-      date.setTimeInMillis(column.getName());
+      ChronologicalRecord column = columns.next();
+      date.setTimeInMillis(column.getTimestamp());
       String key = getKeyName(date);
 
       if (!groups.containsKey(key)) {
-        groups.put(key, new LinkedList<HColumn<Long, byte[]>>());
+        groups.put(key, new LinkedList<ChronologicalRecord>());
       }
       groups.get(key).add(column);
     }
 
-    for (Entry<String, List<HColumn<Long, byte[]>>> entry : groups.entrySet()) {
+    for (Entry<String, List<ChronologicalRecord>> entry : groups.entrySet()) {
       new CassandraChronicle(keyspace, template, entry.getKey()).add(entry
           .getValue());
     }
   }
 
   @Override
-  public Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2,
-      int batchSize) {
-    LinkedList<Iterator<HColumn<Long, byte[]>>> iterators = new LinkedList<Iterator<HColumn<Long, byte[]>>>();
+  public Iterator<ChronologicalRecord> getRange(long t1, long t2, int batchSize) {
+    LinkedList<Iterator<ChronologicalRecord>> iterators = new LinkedList<Iterator<ChronologicalRecord>>();
     for (CassandraChronicle chronicle : getSubChronicles(t1, t2)) {
       iterators.add(chronicle.getRange(t1, t2, batchSize));
     }

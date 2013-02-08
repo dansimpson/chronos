@@ -1,18 +1,17 @@
-package org.ds.support;
+package org.ds.chronos.support;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineDecoder;
 
 public class TestDecoder implements TimelineDecoder<TestData> {
 
-  private Iterator<HColumn<Long, byte[]>> input;
+  private Iterator<ChronologicalRecord> input;
 
   @Override
-  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+  public void setInputStream(Iterator<ChronologicalRecord> input) {
     this.input = input;
   }
 
@@ -23,11 +22,11 @@ public class TestDecoder implements TimelineDecoder<TestData> {
 
   @Override
   public TestData next() {
-    HColumn<Long, byte[]> column = input.next();
+    ChronologicalRecord column = input.next();
     ByteBuffer buffer = column.getValueBytes();
 
     TestData data = new TestData();
-    data.time = column.getName();
+    data.time = column.getTimestamp();
     data.type = buffer.get();
     data.value = buffer.getDouble();
     return data;

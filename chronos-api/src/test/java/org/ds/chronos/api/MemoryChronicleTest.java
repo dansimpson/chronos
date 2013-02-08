@@ -1,27 +1,23 @@
-package org.ds.chronos;
+package org.ds.chronos.api;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.Assert;
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
 
-import org.ds.chronos.api.Chronicle;
-import org.ds.chronos.api.Chronos;
-import org.ds.chronos.chronicle.MemoryChronicle;
-import org.ds.support.TestBase;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
+import org.ds.chronos.support.TestBase;
 import org.junit.Test;
 
 public class MemoryChronicleTest extends TestBase {
 
-  protected HColumn<Long, byte[]> getTestItem(long time) {
-    return HFactory.createColumn(time, "Hello".getBytes());
+  protected ChronologicalRecord getTestItem(long time) {
+    return new ChronologicalRecord(time, "Hello".getBytes());
   }
 
-  protected List<HColumn<Long, byte[]>> getTestItemList(long startTime,
+  protected List<ChronologicalRecord> getTestItemList(long startTime,
       long periodInMillis, int count) {
-    List<HColumn<Long, byte[]>> result = new ArrayList<HColumn<Long, byte[]>>();
+    List<ChronologicalRecord> result = new ArrayList<ChronologicalRecord>();
     for (int i = 0; i < count; i++) {
       result.add(getTestItem(startTime + (periodInMillis * i)));
     }
@@ -49,23 +45,23 @@ public class MemoryChronicleTest extends TestBase {
     Chronicle chronicle = new MemoryChronicle();
     chronicle.add(getTestItemList(0, 1000, 100));
 
-    List<HColumn<Long, byte[]>> items = Chronos.toList(chronicle.getRange(1000,
-        5000));
+    List<ChronologicalRecord> items = MemoryChronicle.toList(chronicle.getRange(1000, 5000));
 
     Assert.assertEquals(5, items.size());
-    Assert.assertEquals(1000, items.get(0).getName().longValue());
-    Assert.assertEquals(5000, items.get(4).getName().longValue());
+    Assert.assertEquals(1000, items.get(0).getTimestamp());
+    Assert.assertEquals(5000, items.get(4).getTimestamp());
   }
 
   @Test
   public void testReverseRange() {
     Chronicle chronicle = new MemoryChronicle();
     chronicle.add(getTestItemList(0, 1000, 100));
-    List<HColumn<Long, byte[]>> items = Chronos.toList(chronicle.getRange(5000,
-        1000));
+    
+    List<ChronologicalRecord> items = MemoryChronicle.toList(chronicle.getRange(5000, 1000));
+
     Assert.assertEquals(5, items.size());
-    Assert.assertEquals(5000, items.get(0).getName().longValue());
-    Assert.assertEquals(1000, items.get(4).getName().longValue());
+    Assert.assertEquals(5000, items.get(0).getTimestamp());
+    Assert.assertEquals(1000, items.get(4).getTimestamp());
   }
 
   @Test

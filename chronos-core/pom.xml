@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-      <groupId>org.ds.chronos</groupId>
-      <artifactId>chronos-parent</artifactId>
-      <version>1.0.1</version>
+    <groupId>org.ds.chronos</groupId>
+    <artifactId>chronos-parent</artifactId>
+    <version>1.0.1</version>
   </parent>
 
   <artifactId>chronos-core</artifactId>
@@ -13,7 +13,11 @@
   <packaging>bundle</packaging>
 
   <dependencies>
-
+    <dependency>
+      <groupId>org.ds.chronos</groupId>
+      <artifactId>chronos-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.hectorclient</groupId>
       <artifactId>hector-core</artifactId>

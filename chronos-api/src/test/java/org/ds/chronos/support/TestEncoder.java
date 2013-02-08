@@ -1,11 +1,9 @@
-package org.ds.support;
+package org.ds.chronos.support;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineEncoder;
 
 public class TestEncoder implements TimelineEncoder<TestData> {
@@ -18,13 +16,13 @@ public class TestEncoder implements TimelineEncoder<TestData> {
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     TestData data = input.next();
     ByteBuffer buffer = ByteBuffer.allocate(9);
     buffer.put(data.type);
     buffer.putDouble(data.value);
     buffer.rewind();
-    return HFactory.createColumn(data.time, buffer.array());
+    return new ChronologicalRecord(data.time, buffer.array());
   }
 
   @Override

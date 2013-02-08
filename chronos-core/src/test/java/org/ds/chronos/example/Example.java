@@ -8,18 +8,18 @@ import java.util.List;
 
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.factory.HFactory;
 
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronicleBatch;
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.ChronologicalRecord;
+import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.chronicle.PartitionPeriod;
+import org.ds.chronos.support.TestData;
+import org.ds.chronos.support.TestDecoder;
+import org.ds.chronos.support.TestEncoder;
 import org.ds.chronos.timeline.Timeline;
-import org.ds.support.TestData;
-import org.ds.support.TestDecoder;
-import org.ds.support.TestEncoder;
 
 @SuppressWarnings("unused")
 public class Example {
@@ -35,7 +35,7 @@ public class Example {
 
     // Create chronos instance for the column family metrics to use
     // as a factory for accessing Chronicles or Timelines
-    Chronos chronos = new Chronos(cluster, keyspace, "metrics");
+    CassandraChronos chronos = new CassandraChronos(cluster, keyspace, "metrics");
 
     // ///////////////////
 
@@ -63,11 +63,11 @@ public class Example {
     long t1 = System.currentTimeMillis() - 500;
     long t2 = System.currentTimeMillis();
 
-    Iterator<HColumn<Long, byte[]>> stream = chronicle.getRange(t1, t2);
+    Iterator<ChronologicalRecord> stream = chronicle.getRange(t1, t2);
     while (stream.hasNext()) {
-      HColumn<Long, byte[]> column = stream.next();
-      Long time = column.getName();
-      String data = new String(column.getValue(), Chronicle.CHARSET);
+      ChronologicalRecord column = stream.next();
+      Long time = column.getTimestamp();
+      String data = new String(column.getData(), Chronicle.CHARSET);
     }
 
     // ///////////////////

@@ -7,7 +7,7 @@ import static org.ds.chronos.metrics.transforms.MetricFilters.summarize;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.ds.chronos.chronicle.MemoryChronicle;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.metrics.MetricStore;
 import org.ds.chronos.metrics.MetricSummary;

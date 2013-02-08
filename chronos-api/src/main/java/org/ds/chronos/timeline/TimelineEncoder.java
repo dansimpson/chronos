@@ -2,7 +2,7 @@ package org.ds.chronos.timeline;
 
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
+import org.ds.chronos.api.ChronologicalRecord;
 
 /**
  * 
@@ -10,7 +10,7 @@ import me.prettyprint.hector.api.beans.HColumn;
  *
  * @param <T>
  */
-public interface TimelineEncoder<T> extends Iterator<HColumn<Long, byte[]>> {
+public interface TimelineEncoder<T> extends Iterator<ChronologicalRecord> {
 	
 	/**
 	 * 

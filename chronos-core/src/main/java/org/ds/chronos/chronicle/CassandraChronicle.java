@@ -9,12 +9,12 @@ import me.prettyprint.cassandra.service.ColumnSliceIterator;
 import me.prettyprint.cassandra.service.template.ColumnFamilyTemplate;
 import me.prettyprint.cassandra.service.template.ColumnFamilyUpdater;
 import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.query.ColumnQuery;
 import me.prettyprint.hector.api.query.SliceQuery;
 
 import org.ds.chronos.api.Chronicle;
+import org.ds.chronos.api.ChronologicalRecord;
 
 /**
  * 
@@ -37,19 +37,21 @@ public class CassandraChronicle extends Chronicle {
   }
 
   @Override
-  public void add(HColumn<Long, byte[]> column) {
+  public void add(ChronologicalRecord column) {
     ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
-    updater.setColumn(column);
+    updater.setColumn(HFactory.createColumn(column.getTimestamp(),
+        column.getData()));
     template.update(updater);
   }
 
   @Override
-  public void add(Iterator<HColumn<Long, byte[]>> items, int pageSize) {
+  public void add(Iterator<ChronologicalRecord> items, int pageSize) {
     ColumnFamilyUpdater<String, Long> updater = template.createUpdater(key);
     int count = 0;
     while (items.hasNext()) {
-      HColumn<Long, byte[]> column = items.next();
-      updater.setColumn(column);
+      ChronologicalRecord column = items.next();
+      updater.setColumn(HFactory.createColumn(column.getTimestamp(),
+          column.getData()));
       if (++count % pageSize == 0) {
         template.update(updater);
       }
@@ -79,23 +81,23 @@ public class CassandraChronicle extends Chronicle {
   }
 
   @Override
-  public Iterator<HColumn<Long, byte[]>> getRange(long t1, long t2, int pageSize) {
+  public Iterator<ChronologicalRecord> getRange(long t1, long t2, int pageSize) {
     SliceQuery<String, Long, byte[]> query = HFactory.createSliceQuery(
         keyspace, StringSerializer.get(), LongSerializer.get(),
         BytesArraySerializer.get());
     query.setColumnFamily(template.getColumnFamily());
     query.setKey(key);
     query.setRange(t1, t2, t1 > t2, pageSize);
-    return new ColumnSliceIterator<String, Long, byte[]>(query, t1, t2,
-        t1 > t2, pageSize);
+    return new CassandraIterator(new ColumnSliceIterator<String, Long, byte[]>(
+        query, t1, t2, t1 > t2, pageSize));
   }
 
   @Override
   public void deleteRange(long t1, long t2) {
     assert (t1 <= t2);
-    Iterator<HColumn<Long, byte[]>> range = getRange(t1, t2);
+    Iterator<ChronologicalRecord> range = getRange(t1, t2);
     while (range.hasNext()) {
-      template.deleteColumn(key, range.next().getName());
+      template.deleteColumn(key, range.next().getTimestamp());
     }
   }
 

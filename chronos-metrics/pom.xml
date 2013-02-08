@@ -15,8 +15,14 @@
   <dependencies>
     <dependency>
       <groupId>org.ds.chronos</groupId>
+      <artifactId>chronos-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ds.chronos</groupId>
       <artifactId>chronos-core</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

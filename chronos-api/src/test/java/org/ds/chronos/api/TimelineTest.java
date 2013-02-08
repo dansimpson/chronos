@@ -1,4 +1,4 @@
-package org.ds.chronos.timeline;
+package org.ds.chronos.api;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -7,10 +7,11 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.ds.chronos.chronicle.MemoryChronicle;
-import org.ds.support.TestData;
-import org.ds.support.TestDecoder;
-import org.ds.support.TestEncoder;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
+import org.ds.chronos.support.TestData;
+import org.ds.chronos.support.TestDecoder;
+import org.ds.chronos.support.TestEncoder;
+import org.ds.chronos.timeline.Timeline;
 import org.junit.Before;
 import org.junit.Test;
 

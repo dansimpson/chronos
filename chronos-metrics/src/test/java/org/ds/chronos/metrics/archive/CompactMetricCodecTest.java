@@ -4,12 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.metrics.Metric;
-import org.ds.chronos.metrics.archive.MetricArchiveDecoder;
-import org.ds.chronos.metrics.archive.MetricArchiveEncoder;
 import org.ds.chronos.util.Duration;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,8 +27,8 @@ public class CompactMetricCodecTest {
     buffer.putFloat(3f);
     buffer.putFloat(4f);
     
-    List<HColumn<Long, byte[]>> source = new ArrayList<HColumn<Long, byte[]>>();
-    source.add(HFactory.createColumn(0l, buffer.array()));
+    List<ChronologicalRecord> source = new ArrayList<ChronologicalRecord>();
+    source.add(new ChronologicalRecord(0l, buffer.array()));
     
     MetricArchiveDecoder decoder = new MetricArchiveDecoder();
     decoder.setInputStream(source.iterator());
@@ -64,8 +60,8 @@ public class CompactMetricCodecTest {
 
     int itr = 0;
     while(encoder.hasNext()) {
-      HColumn<Long, byte[]> data = encoder.next();
-      Assert.assertEquals(2 * Metric.BYTE_SIZE + 16, data.getValue().length);
+      ChronologicalRecord data = encoder.next();
+      Assert.assertEquals(2 * Metric.BYTE_SIZE + 16, data.getData().length);
       itr++;
     }
   

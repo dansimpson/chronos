@@ -1,11 +1,11 @@
-package org.ds.chronos;
+package org.ds.chronos.api;
 
 import java.util.Calendar;
 import java.util.Date;
 
 import org.ds.chronos.api.ChronosException;
+import org.ds.chronos.support.TestBase;
 import org.ds.chronos.util.Duration;
-import org.ds.support.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 

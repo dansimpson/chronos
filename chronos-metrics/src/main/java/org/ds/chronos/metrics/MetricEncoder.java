@@ -2,9 +2,7 @@ package org.ds.chronos.metrics;
 
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineEncoder;
 
 /**
@@ -23,9 +21,9 @@ public class MetricEncoder implements TimelineEncoder<Metric> {
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     Metric m = upstream.next();
-    return HFactory.createColumn(m.getTime(), m.toBuffer().array());
+    return new ChronologicalRecord(m.getTime(), m.toBuffer().array());
   }
 
   @Override

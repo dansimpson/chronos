@@ -2,11 +2,9 @@ package org.ds.chronos.timeline.json;
 
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-import me.prettyprint.hector.api.factory.HFactory;
-
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +39,10 @@ public class JsonTimelineEncoder<T extends Timestamped> implements
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     T item = upstream.next();
     try {
-      return HFactory.createColumn(item.getTimestamp(),
+      return new ChronologicalRecord(item.getTimestamp(),
           mapper.writeValueAsBytes(item));
     } catch (Throwable t) {
       log.error("Error encoding object", t);

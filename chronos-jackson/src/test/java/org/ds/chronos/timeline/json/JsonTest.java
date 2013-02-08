@@ -4,45 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.jackson.type.TypeReference;
-import org.ds.chronos.api.Chronos;
 import org.ds.chronos.api.ChronosException;
-import org.ds.chronos.chronicle.MemoryChronicle;
-import org.ds.chronos.chronicle.PartitionPeriod;
+import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.ds.chronos.timeline.Timeline;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class JsonTest {
 
   Timeline<JsonTestObject> timeline;
 
-  private static JsonTimelineFactory factory;
-
-  @SuppressWarnings("unchecked")
-  @BeforeClass
-  public static void create() throws ChronosException {
-    Chronos chronos = Mockito.mock(Chronos.class);
-    Mockito.when(chronos.getChronicle(Mockito.anyString())).thenReturn(
-        new MemoryChronicle());
-    Mockito.when(
-        chronos.getChronicle(Mockito.anyString(),
-            Mockito.any(PartitionPeriod.class))).thenReturn(
-        new MemoryChronicle());
-    Mockito.when(
-        chronos.getTimeline(Mockito.anyString(),
-            Mockito.any(JsonTimelineEncoder.class),
-            Mockito.any(JsonTimelineDecoder.class))).thenCallRealMethod();
-    factory = new JsonTimelineFactory(chronos);
-  }
-
   @Before
   public void setup() throws ChronosException {
-    timeline = factory.createTimeline("test",
-        new TypeReference<JsonTestObject>() {
-        });
+    timeline = new JsonTimeline<JsonTestObject>(new MemoryChronicle(), new TypeReference<JsonTestObject>() {});
   }
 
   public JsonTestObject buildObject(long time) {

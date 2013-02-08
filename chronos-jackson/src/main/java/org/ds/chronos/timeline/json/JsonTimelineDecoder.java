@@ -2,11 +2,10 @@ package org.ds.chronos.timeline.json;
 
 import java.util.Iterator;
 
-import me.prettyprint.hector.api.beans.HColumn;
-
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.timeline.TimelineDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class JsonTimelineDecoder<T extends Timestamped> implements
     this.typeRef = typeRef;
   }
 
-  private Iterator<HColumn<Long, byte[]>> upstream;
+  private Iterator<ChronologicalRecord> upstream;
 
   @Override
   public boolean hasNext() {
@@ -45,11 +44,11 @@ public class JsonTimelineDecoder<T extends Timestamped> implements
 
   @Override
   public T next() {
-    HColumn<Long, byte[]> column = upstream.next();
+    ChronologicalRecord column = upstream.next();
     T item = null;
     try {
-      item = mapper.readValue(column.getValue(), typeRef);
-      item.setTimestamp(column.getName());
+      item = mapper.readValue(column.getData(), typeRef);
+      item.setTimestamp(column.getTimestamp());
     } catch (Throwable t) {
       log.error("Error decoding column", t);
     }
@@ -61,7 +60,7 @@ public class JsonTimelineDecoder<T extends Timestamped> implements
   }
 
   @Override
-  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+  public void setInputStream(Iterator<ChronologicalRecord> input) {
     upstream = input;
   }
 

@@ -8,7 +8,7 @@ import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 
-import org.ds.chronos.api.Chronos;
+import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
 import org.junit.BeforeClass;
 
@@ -43,8 +43,8 @@ public class TestBaseWithCassandra extends TestBase {
     }
   }
 
-  public Chronos getChronos(String cfName) throws ChronosException {
-    return new Chronos(cluster, keyspace, cfName);
+  public CassandraChronos getChronos(String cfName) throws ChronosException {
+    return new CassandraChronos(cluster, keyspace, cfName);
   }
 
 }

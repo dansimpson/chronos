@@ -1,14 +1,15 @@
-package org.ds.chronos.timeline.stream;
+package org.ds.chronos.api;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.ds.chronos.support.TestData;
+import org.ds.chronos.timeline.stream.DataStream;
 import org.ds.chronos.timeline.stream.DataStreamAggregator.Aggregator;
 import org.ds.chronos.timeline.stream.DataStreamFilter.FilterFn;
 import org.ds.chronos.timeline.stream.DataStreamMap.MapFn;
 import org.ds.chronos.timeline.stream.DataStreamTransform.TransformFn;
-import org.ds.support.TestData;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
