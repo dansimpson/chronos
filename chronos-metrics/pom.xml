@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-      <groupId>org.ds.chronos</groupId>
-      <artifactId>chronos-parent</artifactId>
-      <version>1.0.1</version>
+    <groupId>org.ds.chronos</groupId>
+    <artifactId>chronos-parent</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>chronos-metrics</artifactId>
@@ -20,7 +20,7 @@
     </dependency>
     <dependency>
       <groupId>org.ds.chronos</groupId>
-      <artifactId>chronos-core</artifactId>
+      <artifactId>chronos-cassandra</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

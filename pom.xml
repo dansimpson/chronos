@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.ds.chronos</groupId>
     <artifactId>chronos-parent</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Metrics Parent</name>
     <description>
@@ -13,7 +13,7 @@
 
     <modules>
         <module>chronos-api</module>
-        <module>chronos-core</module>
+        <module>chronos-cassandra</module>
         <module>chronos-metrics</module>
         <module>chronos-jackson</module>
     </modules>

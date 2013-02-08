@@ -1,16 +1,22 @@
 Chronos
 =======
 
-A small collection of abstractions for storing, traversing, and processing
-timeseries data in cassandra with hector which features:
+A small API for storing, traversing, and processing
+timeseries data.
 
-* Events stored as a LongType,ByteArray column
-* Traverse, count, and delete items for a given time frame
-* Bulk inserts/updates
-* Date based paritioning (multiple rows for single data set)
-* Lazy streaming via iterators and paging
-* API for custom streaming serialization/deserialization
-* API for filtering, transforming, and aggregating data lazily
+#### APIS
+
+* Storage
+* Traversal, counting, and deletion for time frames
+* Iterators for lazily loading a processing
+* Filtering, mapping, transformation, and aggregation
+* Customized serialization
+
+#### Extensions
+
+* chronos-jackson - JSON object storage
+* chronos-metrics - numeric data storage and processing
+* chronos-cassandra - Storage with cassandra
 
 General Concept
 ---------------
@@ -19,7 +25,7 @@ Creating timelines and adding data:
 
 ```java
 Timeline<Metric> timeline 
-  = chronos.getTimeline("metrics-c12345", new MetricEncoder(), new MetricEncoder());
+  = chronos.getTimeline(getChronicle("key"), new MetricEncoder(), new MetricEncoder());
 timeline.add(getNewMetrics());
 ```
 
@@ -40,24 +46,6 @@ for(MetricSummary metric: stream) {
 }
 ```
 
-Getting Started
----------------
-
-### Configuration
-
-Configuration is done via hector's configuration facilities.  Once setup, you
-can create a Chronos factory object, which is used to build Chronicles and Timelines:
-
-```java
-Cluster cluster = HFactory.getOrCreateCluster(clusterName, "localhost:9160");
-if (cluster.describeKeyspace("chronos") == null) {
-  cluster.addKeyspace(HFactory.createKeyspaceDefinition("chronos"), true);
-}
-Keyspace keyspace = HFactory.createKeyspace("chronos", cluster);
-
-// Chronicle and Timeline factory
-Chronos chronos = new Chronos(cluster, keyspace, "metrics");
-```
 
 ### Chronicles
 
@@ -66,27 +54,13 @@ want a higher level API, see the Timeline section.
 
 Chronicle Types:
 
-* CassandraChronicle - A single row chronicle
+* MemoryChronicle - Used for tests, etc
+* CassandraChronicle - A single row chronicle (see chronos-cassandra)
 * PartitionedChronicle - A chronicle partitioned over many rows.
   Each event falls on a key based on the event date, for example 
   an event day 2013-01-15 would land on the key: site-445-2013-01.  
   Queries iterate over keys and columns to stream the partitioned time series
-  in order
-* MemoryChronicle - Used for tests, etc
-
-##### Creating a chronicle
-
-Build a chronicle with data that resides on a single key:
-
-```java
-Chronicle chronicle = chronos.getChronicle("site-445");
-```
-
-Build a chronicle with data paritioned into months:
-
-```java
-Chronicle monthly = chronos.getChronicle("site-445", PartitionPeriod.MONTH);
-```
+  in order (see chronos-cassandra)
 
 ##### Adding data
 
@@ -111,11 +85,11 @@ chronicle.add(batch);
 long t1 = System.currentTimeMillis() - 500;
 long t2 = System.currentTimeMillis();
 
-Iterator<HColumn<Long, byte[]>> stream = chronicle.getRange(t1, t2);
+Iterator<ChronologicalRecord> stream = chronicle.getRange(t1, t2);
 while(stream.hasNext()) {
-  HColumn<Long, byte[]> column = stream.next();
-  Long time = column.getName();
-  String data = new String(column.getValue(), Chronicle.CHARSET);
+  ChronologicalRecord column = stream.next();
+  Long time = column.getTimestamp();
+  String data = new String(column.getData(), Chronicle.CHARSET);
 }
 ```
 
@@ -164,10 +138,10 @@ and outputs TestData objects:
 ```java
 public class TestDecoder implements TimelineDecoder<TestData> {
 
-  private Iterator<HColumn<Long, byte[]>> input;
+  private Iterator<ChronologicalRecord> input;
   
   @Override
-  public void setInputStream(Iterator<HColumn<Long, byte[]>> input) {
+  public void setInputStream(Iterator<ChronologicalRecord> input) {
     this.input = input;
   }
 
@@ -178,7 +152,7 @@ public class TestDecoder implements TimelineDecoder<TestData> {
 
   @Override
   public TestData next() {
-    HColumn<Long, byte[]> column = input.next();      
+    ChronologicalRecord column = input.next();      
     ByteBuffer buffer = column.getValueBytes();
     
     TestData data = new TestData();
@@ -208,7 +182,7 @@ public class TestEncoder implements TimelineEncoder<TestData> {
   }
 
   @Override
-  public HColumn<Long, byte[]> next() {
+  public ChronologicalRecord next() {
     TestData data = input.next();
     ByteBuffer buffer = ByteBuffer.allocate(9);
     buffer.put(data.type);
@@ -361,7 +335,8 @@ Maven central or other repo is planned.
 
 Modules
 -------
-* chronos-core - Scalable timeseries storage and retreival with hector
+* chronos-api - Timeseries processing and storage API
+* chronos-hector - Scalable timeseries storage and retreival with hector and cassandra
 * chronos-jackson - Storing timeseries objects as json
 * chronos-metrics - Storing timeseries as numeric values with some transformation utilities
 

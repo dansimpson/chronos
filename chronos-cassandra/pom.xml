@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.ds.chronos</groupId>
     <artifactId>chronos-parent</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>chronos-core</artifactId>
-  <name>chronos core</name>
+  <artifactId>chronos-cassandra</artifactId>
+  <name>chronos cassandra</name>
   <packaging>bundle</packaging>
 
   <dependencies>
