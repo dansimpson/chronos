@@ -25,14 +25,18 @@ public class MetricSummarizer implements Aggregator<Metric, MetricSummary> {
   }
 
   @Override
-  public boolean feed(Metric metric) {
+  public void add(Metric metric) {
     aggregate.add(metric);
-    return aggregate.getDuration() > duration.getMillis();
   }
 
   @Override
-  public MetricSummary flush() {
+  public MetricSummary getResult() {
     return aggregate.cloneAndReset();
+  }
+
+	@Override
+  public boolean hasResult() {
+		return aggregate.getDuration() > duration.getMillis();
   }
 
 }

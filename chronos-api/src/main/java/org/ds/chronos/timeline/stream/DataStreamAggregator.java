@@ -4,73 +4,79 @@ import java.util.Iterator;
 
 public class DataStreamAggregator<I, O> implements DataStreamIterator<O> {
 
-  /**
-   * A aggregator for reducing upstream data for downstream processing.
-   * 
-   * 
-   * 
-   * @author Dan Simpson
-   * 
-   * @param <I>
-   *          input type
-   * @param <O>
-   *          output type
-   */
-  public static interface Aggregator<I, O> {
+	/**
+	 * A aggregator for reducing upstream data for downstream processing.
+	 * 
+	 * 
+	 * 
+	 * @author Dan Simpson
+	 * 
+	 * @param <I>
+	 *          input type
+	 * @param <O>
+	 *          output type
+	 */
+	public static interface Aggregator<I, O> {
 
-    /**
-     * Return true if full, meaning we will flush
-     * 
-     * @param item
-     * @return
-     */
-    public boolean feed(I item);
+		/**
+		 * Add an item to the aggregator
+		 * 
+		 * @param item
+		 */
+		public void add(I item);
 
-    /**
-     * Flush out the reduced item. Return null to indicate that we are done
-     * here.
-     * 
-     * @return object or null if nothing exists
-     */
-    public O flush();
-  }
+		/**
+		 * If the aggregator has a result, return true
+		 * 
+		 * @return
+		 */
+		public boolean hasResult();
 
-  private Iterator<I> input;
-  private Aggregator<I, O> aggregate;
-  private O last;
+		/**
+		 * Flush out the reduced item. Return null to indicate that we are done here.
+		 * 
+		 * @return object or null if nothing exists
+		 */
+		public O getResult();
+	}
 
-  public DataStreamAggregator(Aggregator<I, O> aggregate) {
-    this.aggregate = aggregate;
-  }
+	private Iterator<I> input;
+	private Aggregator<I, O> aggregate;
+	private O last;
 
-  @Override
-  public boolean hasNext() {
-    while (input.hasNext()) {
-      if (aggregate.feed(input.next())) {
-        last = aggregate.flush();
-        return true;
-      }
-    }
+	public DataStreamAggregator(Aggregator<I, O> aggregate) {
+		this.aggregate = aggregate;
+	}
 
-    if ((last = aggregate.flush()) == null) {
-      return false;
-    }
+	@Override
+	public boolean hasNext() {
+		while (input.hasNext()) {
+			aggregate.add(input.next());
+			if (aggregate.hasResult()) {
+				last = aggregate.getResult();
+				return true;
+			}
+		}
 
-    return true;
-  }
+		if ((last = aggregate.getResult()) == null) {
+			return false;
+		}
 
-  @Override
-  public O next() {
-    return last;
-  }
+		return true;
+	}
 
-  @Override
-  public void remove() {
-  }
+	@Override
+	public O next() {
+		return last;
+	}
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public void setUpstream(Iterator<?> upstream) {
-    input = (Iterator<I>) upstream;
-  }
+	@Override
+	public void remove() {
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setUpstream(Iterator<?> upstream) {
+		input = (Iterator<I>) upstream;
+	}
 }

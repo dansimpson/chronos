@@ -58,15 +58,12 @@ public class DataStreamTest {
       int count = 0;
       double sum = 0d;
 
-      public boolean feed(Double item) {
+      public void add(Double item) {
         sum += item;
-        if (++count == window) {
-          return true;
-        }
-        return false;
+        count++;
       }
 
-      public Double flush() {
+      public Double getResult() {
         if (count == 0) {
           return null;
         }
@@ -75,6 +72,11 @@ public class DataStreamTest {
         sum = 0d;
         count = 0;
         return result;
+      }
+
+			@Override
+      public boolean hasResult() {
+	      return count == window;
       }
 
     };
