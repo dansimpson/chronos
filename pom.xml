@@ -23,6 +23,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<slf4j.version>1.6.6</slf4j.version>
+		<jackson.version>2.1.4</jackson.version>
 	</properties>
 
 	<developers>

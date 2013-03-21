@@ -1,8 +1,9 @@
 package org.ds.chronos.timeline.json;
 
-import org.codehaus.jackson.type.TypeReference;
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.timeline.Timeline;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * JSON Timeline
