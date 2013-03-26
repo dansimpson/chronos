@@ -2,7 +2,6 @@ package org.ds.chronos.api;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -15,77 +14,108 @@ import org.ds.chronos.timeline.Timeline;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+
 public class TimelineTest {
 
-  private MemoryChronicle chronicle;
-  private Timeline<TestData> store;
+	private MemoryChronicle chronicle;
+	private Timeline<TestData> store;
 
-  @Before
-  public void createChronicle() {
-    chronicle = new MemoryChronicle();
-    store = new Timeline<TestData>(chronicle, new TestDecoder(),
-        new TestEncoder());
-  }
+	@Before
+	public void createChronicle() {
+		chronicle = new MemoryChronicle();
+		store = new Timeline<TestData>(chronicle, new TestDecoder(), new TestEncoder());
+	}
 
-  @Test
-  public void testSingleItem() {
-    TestData data = new TestData();
-    data.time = 1000;
-    data.type = 0x05;
-    data.value = 1337.1337d;
-    store.add(data);
+	@Test
+	public void testSingleItem() {
+		TestData data = new TestData();
+		data.time = 1000;
+		data.type = 0x05;
+		data.value = 1337.1337d;
+		store.add(data);
 
-    Assert.assertEquals(1,
-        chronicle.getNumEvents(0, System.currentTimeMillis()));
+		Assert.assertEquals(1, chronicle.getNumEvents(0, System.currentTimeMillis()));
 
-    TestData compare = store.query(new Date(0), new Date(), TestData.class)
-        .first();
-    Assert.assertEquals(data.time, compare.time);
-    Assert.assertEquals(data.type, compare.type);
-    Assert.assertEquals(data.value, compare.value, 0.0);
-  }
+		Optional<TestData> option = store.query(new Date(0), new Date()).first();
+		Assert.assertTrue(option.isPresent());
 
-  @Test(timeout = 3000)
-  public void testManyItems() {
-    int count = 500000;
-    List<TestData> list = new ArrayList<TestData>();
-    for (int i = 0; i < count; i++) {
-      TestData data = new TestData();
-      data.time = i * 1000;
-      data.type = 0x05;
-      data.value = 1337.1337d;
-      list.add(data);
-    }
-    store.add(list);
+		TestData compare = option.get();
+		Assert.assertEquals(data.time, compare.time);
+		Assert.assertEquals(data.type, compare.type);
+		Assert.assertEquals(data.value, compare.value, 0.0);
+	}
 
-    Assert.assertEquals(count,
-        chronicle.getNumEvents(0, System.currentTimeMillis()));
-    Iterator<TestData> data = store.query(new Date(0), new Date(),
-        TestData.class).iterator();
+	@Test(timeout = 3000)
+	public void testManyItems() {
+		int count = 500000;
+		List<TestData> list = new ArrayList<TestData>();
+		for (int i = 0; i < count; i++) {
+			TestData data = new TestData();
+			data.time = i * 1000;
+			data.type = 0x05;
+			data.value = 1337.1337d;
+			list.add(data);
+		}
+		store.add(list);
 
-    long t1 = System.currentTimeMillis();
-    count = 0;
-    while (data.hasNext()) {
-      Assert.assertEquals(count++ * 1000, data.next().time);
-    }
-    System.out.printf("%d items decoded in %d", count,
-        System.currentTimeMillis() - t1);
-  }
+		Assert.assertEquals(count, chronicle.getNumEvents(0, System.currentTimeMillis()));
+		Iterable<TestData> data = store.query(new Date(0), new Date()).stream();
 
-  @Test(timeout = 3000)
-  public void testQuery() {
-    int count = 5000;
-    List<TestData> list = new ArrayList<TestData>();
-    for (int i = 0; i < count; i++) {
-      TestData data = new TestData();
-      data.time = i * 1000;
-      data.type = 0x05;
-      data.value = 1337.1337d;
-      list.add(data);
-    }
-    store.add(list);
+		long t1 = System.currentTimeMillis();
+		count = 0;
+		for (TestData item : data) {
+			Assert.assertEquals(count++ * 1000, item.time);
+		}
+		System.out.printf("%d items decoded in %d", count, System.currentTimeMillis() - t1);
+	}
 
-    Assert.assertEquals(count, store.query(0, count * 1000, TestData.class)
-        .list().size());
-  }
+	@Test(timeout = 3000)
+	public void testQuery() {
+		int count = 5000;
+		List<TestData> list = new ArrayList<TestData>();
+		for (int i = 0; i < count; i++) {
+			TestData data = new TestData();
+			data.time = i * 1000;
+			data.type = 0x05;
+			data.value = 1337.1337d;
+			list.add(data);
+		}
+		store.add(list);
+
+		Assert.assertEquals(count, store.query(0, count * 1000).toList().size());
+	}
+
+	@Test(timeout = 3000)
+	public void testFluent() {
+		int count = 5000;
+		List<TestData> list = new ArrayList<TestData>();
+		for (int i = 0; i < count; i++) {
+			TestData data = new TestData();
+			data.time = i * 1000;
+			data.type = 0x05;
+			data.value = i;
+			list.add(data);
+		}
+		store.add(list);
+
+		Optional<Double> value = store.fluid(0, count * 1000).transform(new Function<TestData, Double>() {
+
+			public Double apply(TestData test) {
+				return test.value;
+			}
+		}).firstMatch(new Predicate<Double>() {
+
+			public boolean apply(Double value) {
+				return value > 1000;
+			}
+		});
+
+		Assert.assertTrue(value.isPresent());
+		Assert.assertEquals(1001, value.get(), 0.0);
+
+	}
+
 }

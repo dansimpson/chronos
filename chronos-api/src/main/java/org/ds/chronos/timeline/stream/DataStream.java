@@ -1,126 +1,238 @@
 package org.ds.chronos.timeline.stream;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
 
-import org.ds.chronos.timeline.stream.DataStreamAggregator.Aggregator;
-import org.ds.chronos.timeline.stream.DataStreamFilter.FilterFn;
-import org.ds.chronos.timeline.stream.DataStreamMap.MapFn;
-import org.ds.chronos.timeline.stream.DataStreamTransform.TransformFn;
+import org.ds.chronos.timeline.stream.partitioned.BucketSizePredicate;
+import org.ds.chronos.timeline.stream.partitioned.PartitionPredicate;
+import org.ds.chronos.timeline.stream.partitioned.PartitionedDataStream;
 
-@SuppressWarnings("unchecked")
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 /**
- * Lazy iterator chain for processing data on the fly.  It's
- * essentially a pipeline.
+ * Lazy stream processing, with support for filters, transforms, partitioning, and reducing.
  * 
  * @author Dan Simpson
- *
- * @param <O> The output type after all transformations
+ * 
+ * @param <O>
+ *          The input type
  */
 public class DataStream<O> {
 
-  public LinkedList<Iterator<?>> stages = new LinkedList<Iterator<?>>();
+	private final FluentIterable<O> source;
 
-  public DataStream(Iterator<?> source) {
-    stages.add(source);
-  }
+	public DataStream(Iterable<O> source) {
+		this.source = FluentIterable.from(source);
+	}
 
-  private DataStream<O> addStage(DataStreamIterator<?> stage) {
-    if (!stages.isEmpty()) {
-      stage.setUpstream(stages.getLast());
-    }
-    stages.addLast(stage);
-    return this;
-  }
+	/**
+	 * Apply a filter condition
+	 * 
+	 * @param condition
+	 *          the condition, which returns true if the object should pass
+	 * @return new stream with filter applied
+	 */
+	public DataStream<O> filter(final Predicate<O> condition) {
+		return new DataStream<O>(source.filter(condition));
+	}
 
-  /**
-   * Apply a filter function
-   * 
-   * @param fn
-   * @return self
-   */
-  public <T> DataStream<O> filter(final FilterFn<T> fn) {
-    return addStage(new DataStreamFilter<T>(fn));
-  }
+	/**
+	 * Apply a map function to each element and emit a stream of mapped objects
+	 * 
+	 * @param fn
+	 *          the map function
+	 * @return new stream
+	 */
+	public <T> DataStream<T> map(final Function<O, T> fn) {
+		return new DataStream<T>(source.transform(fn));
+	}
 
-  /**
-   * Apply a map function
-   * 
-   * @param fn
-   * @return self
-   */
-  public <T, K> DataStream<O> map(final MapFn<T, K> fn) {
-    return addStage(new DataStreamMap<T, K>(fn));
-  }
+	/**
+	 * Reduce the stream into a single object
+	 * 
+	 * @param fn
+	 *          the reduction function
+	 * @return resulting object
+	 */
+	public <T> T reduce(final Function<Iterable<O>, T> fn) {
+		return fn.apply(source);
+	}
 
-  /**
-   * Apply a transform function
-   * 
-   * @param fn
-   * @return self
-   */
-  public <T> DataStream<O> transform(final TransformFn<T> fn) {
-    return addStage(new DataStreamTransform<T>(fn));
-  }
+	/**
+	 * Partition the stream into sub streams based on a boundary predicate.
+	 * 
+	 * @param predicate
+	 *          the predicate which determines if a value belongs in a given parition
+	 * @return
+	 */
+	public PartitionedDataStream<O> partition(final PartitionPredicate<O> predicate) {
+		return new PartitionedDataStream<O>(this, predicate);
+	}
 
-  /**
-   * Apply an aggregation action
-   * 
-   * @param agg
-   * @return self
-   */
-  public <T, K> DataStream<O> aggregate(final Aggregator<T, K> agg) {
-    return addStage(new DataStreamAggregator<T, K>(agg));
-  }
+	/**
+	 * Partition the stream into buckets of size bucketSize
+	 * 
+	 * @param bucketSize
+	 *          the number of elements to be returned per bucket
+	 * @return
+	 */
+	public PartitionedDataStream<O> partition(int bucketSize) {
+		return partition(new BucketSizePredicate<O>(bucketSize));
+	}
 
-  /**
-   * The end of the lazy loading iterator chain
-   * 
-   * @return the iterator of the last item
-   */
-  public Iterator<O> iterator() {
-    return (Iterator<O>) stages.getLast();
-  }
+	/**
+	 * 
+	 * Create an interable for lazy streaming
+	 * 
+	 * @return stream which lazy iterates
+	 */
+	public Iterable<O> stream() {
+		return source;
+	}
 
-  /**
-   * 
-   * Create an interable for lazy streaming
-   * 
-   * @return stream which lazy iterates
-   */
-  public Iterable<O> stream() {
-    final Iterator<O> iterator = iterator();
-    return new Iterable<O>() {
+	@SuppressWarnings("unchecked")
+	/**
+	 * Stream list downcasted
+	 * 
+	 * TODO: Seems broken
+	 * 
+	 * @param klass
+	 * @return
+	 */
+	public <T> Iterable<T> streamAs(Class<T> klass) {
+		return map(new Function<O, T>() {
 
-      public Iterator<O> iterator() {
-        return iterator;
-      }
-    };
-  }
+			public T apply(O o) {
+				return (T) o;
+			}
+		}).stream();
+	}
 
-  /**
-   * Iterate over the results and produce a list
-   * 
-   * @return A list of query results.
-   */
-  public List<O> list() {
-    List<O> list = new ArrayList<O>();
-    Iterator<O> iter = iterator();
-    while (iter.hasNext()) {
-      list.add(iter.next());
-    }
-    return list;
-  }
+	/**
+	 * @param predicate
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#anyMatch(com.google.common.base.Predicate)
+	 */
+	public final boolean anyMatch(Predicate<? super O> predicate) {
+		return source.anyMatch(predicate);
+	}
 
-  /**
-   * Return the first or only item of the result
-   * 
-   * @return The result
-   */
-  public O first() {
-    return iterator().hasNext() ? iterator().next() : null;
-  }
+	/**
+	 * @param predicate
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#allMatch(com.google.common.base.Predicate)
+	 */
+	public final boolean allMatch(Predicate<? super O> predicate) {
+		return source.allMatch(predicate);
+	}
+
+	/**
+	 * @param predicate
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#firstMatch(com.google.common.base.Predicate)
+	 */
+	public final Optional<O> firstMatch(Predicate<? super O> predicate) {
+		return source.firstMatch(predicate);
+	}
+
+	/**
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#first()
+	 */
+	public final Optional<O> first() {
+		return source.first();
+	}
+
+	/**
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#last()
+	 */
+	public final Optional<O> last() {
+		return source.last();
+	}
+
+	/**
+	 * @param size
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#limit(int)
+	 */
+	public final FluentIterable<O> limit(int size) {
+		return source.limit(size);
+	}
+
+	/**
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#toList()
+	 */
+	public final ImmutableList<O> toList() {
+		return source.toList();
+	}
+
+	/**
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#toSet()
+	 */
+	public final ImmutableSet<O> toSet() {
+		return source.toSet();
+	}
+
+	/**
+	 * @param valueFunction
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#toMap(com.google.common.base.Function)
+	 */
+	public final <V> ImmutableMap<O, V> toMap(Function<? super O, V> valueFunction) {
+		return source.toMap(valueFunction);
+	}
+
+	/**
+	 * @param keyFunction
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#index(com.google.common.base.Function)
+	 */
+	public final <K> ImmutableListMultimap<K, O> index(Function<? super O, K> keyFunction) {
+		return source.index(keyFunction);
+	}
+
+	/**
+	 * @param keyFunction
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#uniqueIndex(com.google.common.base.Function)
+	 */
+	public final <K> ImmutableMap<K, O> uniqueIndex(Function<? super O, K> keyFunction) {
+		return source.uniqueIndex(keyFunction);
+	}
+
+	/**
+	 * @param type
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#toArray(java.lang.Class)
+	 */
+	public final O[] toArray(Class<O> type) {
+		return source.toArray(type);
+	}
+
+	/**
+	 * @param collection
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#copyInto(java.util.Collection)
+	 */
+	public final <C extends Collection<? super O>> C copyInto(C collection) {
+		return source.copyInto(collection);
+	}
+
+	/**
+	 * @return
+	 * @see com.google.common.collect.FluentIterable#size()
+	 */
+	public final int size() {
+		return source.size();
+	}
 
 }

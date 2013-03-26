@@ -1,8 +1,16 @@
 package org.ds.chronos.support;
 
-public class TestData {
+import org.ds.chronos.api.Temporal;
+
+public class TestData implements Temporal {
 
   public long time;
   public byte type;
   public double value;
+  
+	@Override
+  public long getTimestamp() {
+	  // TODO Auto-generated method stub
+	  return time;
+  }
 }
