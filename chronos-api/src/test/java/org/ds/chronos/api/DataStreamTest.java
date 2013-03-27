@@ -172,6 +172,42 @@ public class DataStreamTest {
 		Assert.assertEquals(-10d, result.get(0), 0.1);
 	}
 
+	private static class JoinSum implements Function<Iterable<Double>, Double> {
+
+		public Double apply(Iterable<Double> input) {
+			double sum = 0;
+			for (Double d : input) {
+				sum += d;
+			}
+			return sum;
+		}
+
+	}
+
+	@Test
+	public void testJoin() {
+		DataStream<Double> s1 = new DataStream<TestData>(items).map(doublize());
+		DataStream<Double> s2 = new DataStream<TestData>(items).map(doublize());
+		DataStream<Double> sj = s1.join(new JoinSum(), s2);
+		List<Double> result = sj.toList();
+		Assert.assertEquals(STORE_SIZE, sj.size());
+		Assert.assertEquals(2, result.get(1), 0.1);
+	}
+
+	@Test
+	public void testJoin3() {
+		DataStream<Double> s1 = new DataStream<TestData>(items).map(doublize());
+
+		List<DataStream<Double>> others = new ArrayList<DataStream<Double>>();
+		others.add(new DataStream<TestData>(items).map(doublize()));
+		others.add(new DataStream<TestData>(items).map(doublize()));
+
+		DataStream<Double> sj = s1.join(new JoinSum(), others);
+		List<Double> result = sj.toList();
+		Assert.assertEquals(STORE_SIZE, sj.size());
+		Assert.assertEquals(3, result.get(1), 0.1);
+	}
+
 	/**
 	 * @Test
 	 * 

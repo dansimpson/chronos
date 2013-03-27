@@ -1,6 +1,8 @@
 package org.ds.chronos.timeline.stream;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.ds.chronos.timeline.stream.partitioned.BucketSizePredicate;
 import org.ds.chronos.timeline.stream.partitioned.PartitionPredicate;
@@ -38,7 +40,7 @@ public class DataStream<O> {
 	 *          the condition, which returns true if the object should pass
 	 * @return new stream with filter applied
 	 */
-	public DataStream<O> filter(final Predicate<O> condition) {
+	public DataStream<O> filter(final Predicate<? super O> condition) {
 		return new DataStream<O>(source.filter(condition));
 	}
 
@@ -49,7 +51,7 @@ public class DataStream<O> {
 	 *          the map function
 	 * @return new stream
 	 */
-	public <T> DataStream<T> map(final Function<O, T> fn) {
+	public <T> DataStream<T> map(final Function<? super O, T> fn) {
 		return new DataStream<T>(source.transform(fn));
 	}
 
@@ -71,7 +73,7 @@ public class DataStream<O> {
 	 *          the predicate which determines if a value belongs in a given parition
 	 * @return
 	 */
-	public PartitionedDataStream<O> partition(final PartitionPredicate<O> predicate) {
+	public PartitionedDataStream<O> partition(final PartitionPredicate<? super O> predicate) {
 		return new PartitionedDataStream<O>(this, predicate);
 	}
 
@@ -88,6 +90,35 @@ public class DataStream<O> {
 
 	/**
 	 * 
+	 * Joins this stream with another stream of the same type using a join function
+	 * 
+	 * @param streams
+	 * @param transform
+	 * @return
+	 */
+	public <T> DataStreamJoin<O, T> join(Function<Iterable<O>, T> join, DataStream<O> stream) {
+		List<DataStream<O>> joining = new ArrayList<DataStream<O>>();
+		joining.add(this);
+		joining.add(stream);
+		return new DataStreamJoin<O, T>(joining, join);
+	}
+
+	/**
+	 * Join this stream with one ore more other streams with a given join fn
+	 * 
+	 * @param streams
+	 * @param transform
+	 * @return
+	 */
+	public <T> DataStreamJoin<O, T> join(Function<Iterable<O>, T> join, Collection<DataStream<O>> streams) {
+		List<DataStream<O>> joining = new ArrayList<DataStream<O>>();
+		joining.add(this);
+		joining.addAll(streams);
+		return new DataStreamJoin<O, T>(joining, join);
+	}
+
+	/**
+	 * 
 	 * Create an interable for lazy streaming
 	 * 
 	 * @return stream which lazy iterates
@@ -96,11 +127,8 @@ public class DataStream<O> {
 		return source;
 	}
 
-	@SuppressWarnings("unchecked")
 	/**
 	 * Stream list downcasted
-	 * 
-	 * TODO: Seems broken
 	 * 
 	 * @param klass
 	 * @return
@@ -108,6 +136,7 @@ public class DataStream<O> {
 	public <T> Iterable<T> streamAs(Class<T> klass) {
 		return map(new Function<O, T>() {
 
+			@SuppressWarnings("unchecked")
 			public T apply(O o) {
 				return (T) o;
 			}

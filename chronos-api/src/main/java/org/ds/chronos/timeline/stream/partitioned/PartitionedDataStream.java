@@ -28,11 +28,11 @@ public class PartitionedDataStream<T> extends DataStream<DataStream<T>> {
 	 * @param boundary
 	 *          the boundary predicate. When returning false, a new parition will start and the active partition will be passed downstream
 	 */
-	public PartitionedDataStream(DataStream<T> stream, final PartitionPredicate<T> boundary) {
+	public PartitionedDataStream(DataStream<T> stream, final PartitionPredicate<? super T> boundary) {
 		super(wrap(stream.stream().iterator(), boundary));
 	}
 
-	private static <T> Iterable<DataStream<T>> wrap(final Iterator<T> source, final PartitionPredicate<T> boundary) {
+	private static <T> Iterable<DataStream<T>> wrap(final Iterator<T> source, final PartitionPredicate<? super T> boundary) {
 		return new Iterable<DataStream<T>>() {
 
 			private T last;
