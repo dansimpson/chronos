@@ -1,4 +1,5 @@
 target
 .settings
 .project
+release.properties
 .classpath
