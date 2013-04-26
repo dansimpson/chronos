@@ -1,4 +1,4 @@
-package org.ds.chronos;
+package org.ds.chronos.api;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -6,9 +6,7 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.ds.chronos.api.ChronosException;
-import org.ds.chronos.chronicle.PartitionPeriod;
-import org.ds.support.TestBase;
+import org.ds.chronos.support.TestBase;
 import org.junit.Test;
 
 public class PartitionPeriodTest extends TestBase {

@@ -15,7 +15,7 @@ import org.ds.chronos.api.ChronicleBatch;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
-import org.ds.chronos.chronicle.PartitionPeriod;
+import org.ds.chronos.api.PartitionPeriod;
 import org.ds.chronos.support.TestData;
 import org.ds.chronos.support.TestDecoder;
 import org.ds.chronos.support.TestEncoder;

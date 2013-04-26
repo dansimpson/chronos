@@ -1,4 +1,4 @@
-package org.ds.chronos.chronicle;
+package org.ds.chronos.api;
 
 import java.util.Calendar;
 import java.util.Collections;

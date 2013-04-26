@@ -14,8 +14,7 @@ import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 
 import org.ds.chronos.chronicle.CassandraChronicle;
-import org.ds.chronos.chronicle.PartitionPeriod;
-import org.ds.chronos.chronicle.PartitionedChronicle;
+import org.ds.chronos.chronicle.CassandraPartitionedChronicle;
 import org.ds.chronos.timeline.Timeline;
 import org.ds.chronos.timeline.TimelineDecoder;
 import org.ds.chronos.timeline.TimelineEncoder;
@@ -60,7 +59,7 @@ public class CassandraChronos {
 
   public Chronicle getChronicle(String key, PartitionPeriod period)
       throws ChronosException {
-    return new PartitionedChronicle(keyspace, template, key, period);
+    return new CassandraPartitionedChronicle(keyspace, template, key, period);
   }
 
   public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder,

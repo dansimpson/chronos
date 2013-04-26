@@ -8,59 +8,46 @@
 		<version>1.0.2</version>
 	</parent>
 
-	<artifactId>chronos-cassandra</artifactId>
-	<name>chronos cassandra</name>
+	<artifactId>chronos-aws</artifactId>
+	<name>chronos aws tools</name>
 	<packaging>jar</packaging>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.ds.chronos</groupId>
 			<artifactId>chronos-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hectorclient</groupId>
-			<artifactId>hector-core</artifactId>
-			<version>1.1-2</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.cassandra</groupId>
-					<artifactId>cassandra-all</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.cassandra</groupId>
-					<artifactId>slf4j-parent</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk</artifactId>
+			<version>${aws.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk</artifactId>
+			<version>${aws.version}</version>
+			<scope>test</scope>
+			<classifier>sources</classifier>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
-
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
+
 
 	<build>
 		<plugins>
@@ -78,4 +65,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
