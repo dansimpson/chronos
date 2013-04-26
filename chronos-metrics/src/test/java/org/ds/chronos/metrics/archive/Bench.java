@@ -11,7 +11,7 @@ import me.prettyprint.hector.api.factory.HFactory;
 
 import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
-import org.ds.chronos.chronicle.PartitionPeriod;
+import org.ds.chronos.api.PartitionPeriod;
 import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.Timeline;
 import org.ds.chronos.util.Duration;
@@ -20,106 +20,93 @@ import org.slf4j.LoggerFactory;
 
 public class Bench {
 
-  private static final Logger log = LoggerFactory.getLogger(Bench.class);
-  private static CassandraChronos chronos;
+	private static final Logger log = LoggerFactory.getLogger(Bench.class);
+	private static CassandraChronos chronos;
 
-  private static void setup(boolean reset) throws ChronosException {
-    String keyspaceName = "chronosmetrics";
+	private static void setup(boolean reset) throws ChronosException {
+		String keyspaceName = "chronosmetrics";
 
-    Cluster cluster = HFactory.getOrCreateCluster("development",
-        "localhost:9160");
+		Cluster cluster = HFactory.getOrCreateCluster("development", "localhost:9160");
 
-    KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
+		KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
 
-    if (ksDef != null && reset) {
-      List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
-      for (ColumnFamilyDefinition cfDef : cfDefs) {
-        cluster.truncate(keyspaceName, cfDef.getName());
-        cluster.dropColumnFamily(keyspaceName, cfDef.getName());
-      }
-      cluster.dropKeyspace(keyspaceName, true);
-      cluster.addKeyspace(HFactory.createKeyspaceDefinition(keyspaceName), true);
-    }
+		if (ksDef != null && reset) {
+			List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
+			for (ColumnFamilyDefinition cfDef : cfDefs) {
+				cluster.truncate(keyspaceName, cfDef.getName());
+				cluster.dropColumnFamily(keyspaceName, cfDef.getName());
+			}
+			cluster.dropKeyspace(keyspaceName, true);
+			cluster.addKeyspace(HFactory.createKeyspaceDefinition(keyspaceName), true);
+		}
 
-    Keyspace keyspace = HFactory.createKeyspace(keyspaceName, cluster);
-    chronos = new CassandraChronos(cluster, keyspace, "metricsbench");
-  }
+		Keyspace keyspace = HFactory.createKeyspace(keyspaceName, cluster);
+		chronos = new CassandraChronos(cluster, keyspace, "metricsbench");
+	}
 
-  private static Iterator<Metric> generate(final long time, final long count,
-      final long period) {
+	private static Iterator<Metric> generate(final long time, final long count, final long period) {
 
-    return new Iterator<Metric>() {
+		return new Iterator<Metric>() {
 
-      private int counter = 0;
+			private int counter = 0;
 
-      @Override
-      public boolean hasNext() {
-        return counter < count;
-      }
+			@Override
+			public boolean hasNext() {
+				return counter < count;
+			}
 
-      @Override
-      public Metric next() {
-        return new Metric(time + (period * counter++),
-            (float) Math.sin(counter) * 5f);
-      }
+			@Override
+			public Metric next() {
+				return new Metric(time + (period * counter++), (float) Math.sin(counter) * 5f);
+			}
 
-      @Override
-      public void remove() {
-      }
+			@Override
+			public void remove() {
+			}
 
-    };
+		};
 
-  }
+	}
 
-  public static void main(String[] args) throws ChronosException {
-    setup(false);
+	public static void main(String[] args) throws ChronosException {
+		setup(false);
 
-    MetricArchive archive = new MetricArchive(chronos.getChronicle("compact",
-        PartitionPeriod.MONTH), new Duration("1m"), new Duration("1d"));
+		MetricArchive archive = new MetricArchive(chronos.getChronicle("compact", PartitionPeriod.MONTH),
+		    new Duration("1m"), new Duration("1d"));
 
-    
-    log.info("Column count: {}", archive.getNumEvents(0, new Duration("11y").getMillis()));
-    log.info("Compacted....");
-//    benchWrite(archive, new Duration("1m"), new Duration("10y"), 10);
-    
-    benchRead(archive, new Duration("30d"), 100);
-    benchRead(archive, new Duration("1d"), 1);
-    benchRead(archive, new Duration("2d"), 100);
-//    benchRead(archive, new Duration("1y"), 20);
-//    benchRead(archive, new Duration("10y"), 32);
-  }
+		log.info("Column count: {}", archive.getNumEvents(0, new Duration("11y").getMillis()));
+		log.info("Compacted....");
+		// benchWrite(archive, new Duration("1m"), new Duration("10y"), 10);
 
-  public static void benchWrite(Timeline<Metric> store, Duration period,
-      Duration length, int batchSize) {
-    long time = System.currentTimeMillis();
-    log.info("Inserting {} worth of metrics", length.toString());
-    store
-        .add(
-            generate(0, length.getMillis() / period.getMillis(),
-                period.getMillis()), batchSize);
-    log.info("Completed in {} ms", System.currentTimeMillis() - time);
-  }
+		benchRead(archive, new Duration("30d"), 100);
+		benchRead(archive, new Duration("1d"), 1);
+		benchRead(archive, new Duration("2d"), 100);
+	}
 
-  public static void benchRead(Timeline<Metric> store, Duration duration,
-      int times) {
+	public static void benchWrite(Timeline<Metric> store, Duration period, Duration length, int batchSize) {
+		long time = System.currentTimeMillis();
+		log.info("Inserting {} worth of metrics", length.toString());
+		store.add(generate(0, length.getMillis() / period.getMillis(), period.getMillis()), batchSize);
+		log.info("Completed in {} ms", System.currentTimeMillis() - time);
+	}
 
-    log.info("Fetching {} of data", duration.toString());
+	public static void benchRead(Timeline<Metric> store, Duration duration, int times) {
 
-    for (int i = 0; i < times; i++) {
-      Iterator<Metric> stream = store.query(0, duration.getMillis(),
-          Metric.class).iterator();
+		log.info("Fetching {} of data", duration.toString());
 
-      long time = System.currentTimeMillis();
+		for (int i = 0; i < times; i++) {
+			Iterator<Metric> stream = store.query(0, duration.getMillis(), Metric.class).iterator();
 
-      int count = 0;
-      while (stream.hasNext()) {
-        stream.next();
-        count++;
-      }
+			long time = System.currentTimeMillis();
 
-      log.info("{} metrics read in {} ms", count, System.currentTimeMillis()
-          - time);
-    }
-  }
+			int count = 0;
+			while (stream.hasNext()) {
+				stream.next();
+				count++;
+			}
+
+			log.info("{} metrics read in {} ms", count, System.currentTimeMillis() - time);
+		}
+	}
 
 }
