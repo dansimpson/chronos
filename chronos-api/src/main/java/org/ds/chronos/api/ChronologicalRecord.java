@@ -50,5 +50,10 @@ public class ChronologicalRecord implements Comparable<ChronologicalRecord> {
 	public int getByteSize() {
 		return data.length;
 	}
+	
+	public String toString() {
+		return String.format("%s - %d bytes", timestamp, getByteSize());
+	}
+
 
 }
