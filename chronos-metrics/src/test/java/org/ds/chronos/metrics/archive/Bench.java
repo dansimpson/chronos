@@ -14,6 +14,7 @@ import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.PartitionPeriod;
 import org.ds.chronos.metrics.Metric;
 import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.stream.DataStream;
 import org.ds.chronos.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,13 +96,13 @@ public class Bench {
 		log.info("Fetching {} of data", duration.toString());
 
 		for (int i = 0; i < times; i++) {
-			Iterator<Metric> stream = store.query(0, duration.getMillis(), Metric.class).iterator();
+			DataStream<Metric> stream = store.query(0, duration.getMillis());
 
 			long time = System.currentTimeMillis();
 
 			int count = 0;
-			while (stream.hasNext()) {
-				stream.next();
+			for (Metric m : stream.stream()) {
+				m.getTime();
 				count++;
 			}
 

@@ -13,11 +13,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.ds.chronos</groupId>
 			<artifactId>chronos-api</artifactId>
 			<version>${project.version}</version>

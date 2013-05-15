@@ -46,7 +46,7 @@ public class MetricStoreTest {
     }
     store.add(metrics);
 
-    List<Metric> set = store.query(0, 128000, Metric.class).list();
+    List<Metric> set = store.query(0, 128000).toList();
     Assert.assertEquals(128, set.size());
   }
 
@@ -59,7 +59,7 @@ public class MetricStoreTest {
     }
     store.add(metrics);
 
-    List<Metric> set = store.query(64000, 128000, Metric.class).list();
+    List<Metric> set = store.query(64000, 128000).toList();
     Assert.assertEquals(64, set.size());
   }
 
