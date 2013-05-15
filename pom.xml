@@ -18,6 +18,7 @@
 		<module>chronos-metrics</module>
 		<module>chronos-jackson</module>
 		<module>chronos-aws</module>
+		<module>chronos-redis</module>
 	</modules>
 
 	<properties>
