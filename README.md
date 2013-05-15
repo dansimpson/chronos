@@ -1,5 +1,4 @@
-Chronos
-=======
+# Chronos
 
 A small API for storing, traversing, and processing
 timeseries data.
@@ -7,26 +6,19 @@ timeseries data.
 #### APIS
 
 * Storage
-* Traversal, counting, and deletion for time frames
-* Iterators for lazily loading a processing
-* Filtering, mapping, transformation, and aggregation
+* Iteration, counting, and deletion for time ranges
+* Lazy processing
+* Filters, transformations, partitioning, and reducing
 * Customized serialization
 
-#### Extensions
-
-* chronos-jackson - JSON object storage
-* chronos-metrics - numeric data storage and processing
-* chronos-cassandra - Storage with cassandra
-
-General Concept
----------------
+## General Concept
 
 Creating timelines and adding data:
 
 ```java
-Timeline<Metric> timeline 
-  = chronos.getTimeline(getChronicle("key"), new MetricEncoder(), new MetricEncoder());
-timeline.add(getNewMetrics());
+Timeline<Metric> timeline = new MetricStore(chronicle);
+timeline.add(metric);
+timeline.add(metrics);
 ```
 
 Lazily load events and process them through a pipeline
@@ -35,11 +27,12 @@ reduce the data to into summary for every hour (1h), and finally
 iterate over the results.  Example from chronos-metrics:
 
 ```java
-Iterable<MetricSummary> stream = timeline.query(begin, end, MetricSummary.class)
-  .transform(sma(30))
-  .filter(gte(0f))
-  .aggregate(summarize("1h"))
-  .stream();
+Iterable<MetricSummary> stream = timeline.query(begin, end)
+    .map(sma(30))
+    .filter(gte(0f))
+    .partition(new DurationPredicate<Metric>("1h"))
+    .reduceAll(MetricFilters.summarize)
+    .streamAs(MetricSummary.class);
 
 for(MetricSummary metric: stream) {
   System.out.println(metric.getStandardDeviation());
@@ -50,17 +43,18 @@ for(MetricSummary metric: stream) {
 ### Chronicles
 
 A Chronicle is a the base unit of storage for timeseries.  If you
-want a higher level API, see the Timeline section.
+want a higher level API, see the Timeline class.
 
 Chronicle Types:
 
 * MemoryChronicle - Used for tests, etc
 * CassandraChronicle - A single row chronicle (see chronos-cassandra)
-* PartitionedChronicle - A chronicle partitioned over many rows.
+* PartitionedChronicle - A chronicle partitioned over many chronicles.
   Each event falls on a key based on the event date, for example 
   an event day 2013-01-15 would land on the key: site-445-2013-01.  
   Queries iterate over keys and columns to stream the partitioned time series
   in order (see chronos-cassandra)
+* RedisChronicle - Redis backed with Jedis
 
 ##### Adding data
 
@@ -87,9 +81,9 @@ long t2 = System.currentTimeMillis();
 
 Iterator<ChronologicalRecord> stream = chronicle.getRange(t1, t2);
 while(stream.hasNext()) {
-  ChronologicalRecord column = stream.next();
-  Long time = column.getTimestamp();
-  String data = new String(column.getData(), Chronicle.CHARSET);
+  ChronologicalRecord record = stream.next();
+  long time = record.getTimestamp();
+  byte[] data = record.getData();
 }
 ```
 
@@ -115,10 +109,10 @@ boolean recorded = chronicle.isEventRecorded(t1);
 ### Timelines and DataStreams
 
 A Timeline wraps a Chronicle and provides streaming encoding/decoding
-from hector columns to class of your choice and back.  It abstracts away
-some of the complexity with pure Chronicles.  A DataStream chained iterator
-which supports filters, transforms, maps, and reducers.  The data is lazy loaded
-from cassandra in blocks and as it propogates down the chain, is mutated.
+from ChronologicalRecord objects to a class of your choice and back.  It abstracts away
+some of the complexity with pure Chronicles.  A DataStream wraps the FluentIterable class 
+from Guava and supports filters, transforms, partitioning, and reducers.  This model supports
+lazy loading from the underlying data source.
 
 ##### Create an encoder/decoder
 
@@ -188,7 +182,7 @@ public class TestEncoder implements TimelineEncoder<TestData> {
     buffer.put(data.type);
     buffer.putDouble(data.value);
     buffer.rewind();
-    return HFactory.createColumn(data.time, buffer.array());
+    return new ChronologicalRecord(data.time, buffer.array());
   }
 
   @Override
@@ -206,7 +200,7 @@ public class TestEncoder implements TimelineEncoder<TestData> {
 
 ```java
 Timeline<TestData> timeline
-  = chronos.getTimeline("site-445-data", new TestEncoder(), new TestDecoder());
+  = new Timeline<TestData>(getChronicle(), new TestEncoder(), new TestDecoder());
 ```
 
 ##### Add objects
@@ -233,75 +227,34 @@ of using timelines as an input for transfer.
 
 ##### Stream processing
 
-Processing the data stream is possible using 3 function-like
+Processing the data stream is possible using 3 functional(ish)
 interfaces:
 
-* map(object) -> object
-* filter(object) -> boolean
-* aggregate, which has 2 methods: 
-  * feed(object) -> boolean (ready to flush)
-  * flush() -> object
+* map(function<I,O> -> O)
+* filter(predicate<T> -> boolean)
+* partition(predicate<T>) -> PartitionedDataStream<T>
+* reduceAll(function<iterator<T>, T>) -> DataStream<T>
 
 Example of a map function which plucks just the tag from the stream
 of Observation objects.
 
 ```java
-MapFn<Observation, String> tagPluck = new MapFn<Observation, String>() {
-  public String map(Observation o) {
+new Function<Observation, String>() {
+  public String apply(Observation o) {
     return p.getTag();
   }
 };
 ```
 
-If the return type matches the input type, use a transform:
-
-```java
-new TransformFn<Observation>() {}
-```
-
 Example of a filter, which only emits observations where the tag = "spike"
 
 ```java
-FilterFn<Observation> tagFilter = new FilterFn<Observation>() {
-  public boolean check(Observation o) {
+new Predicate<Observation>() {
+  public boolean apply(Observation o) {
     return "spike".equals(p.getTag());
   }
 };
 ```
-
-And finally, an aggregator which gives us windowed mean for
-every 100 observations:
-
-```java
-Aggregator<Observation, Double> windowMean = new Aggregator<Observation, Double>() {
-
-  private double sum = 0d;
-  private int count = 0;
-  
-  @Override
-  public boolean feed(Observation o) {
-    sum += o.getValue();
-    return ++count == 100;
-  }
-
-  @Override
-  public Double flush() {
-    if(count == 0) {
-      return null;
-    }
-
-    double result = sum / count;
-    sum = 0d;
-    count = 0;
-    return result;
-  }
-
-};
-```
-
-Note: It's important that the flush method returns null when there
-is nothing of value.
-
 
 #### Stiching it together
 
@@ -309,10 +262,10 @@ With the DataStream, it's possible to compose multi stage pipelines
 of iterators which apply the map functions and emit a result stream.
 
 ```java
-Iterable<Double> stream = timeline.query(begin, end, Double.class)
+Iterable<Double> stream = timeline.query(begin, end)
   .filter(tagFilter)
-  .aggregate(windowMean)
-  .stream();
+  .map(multBy2)
+  .streamAs(Double.class);
 
 for(Double d: stream) {
   out.write(d);
@@ -327,8 +280,8 @@ Maven central or other repo is planned.
 
 ```xml
 <dependency>
-  <groupId>org.ds</groupId>
-  <artifactId>chronos</artifactId>
+  <groupId>org.ds.chronos</groupId>
+  <artifactId>chronos-api</artifactId>
   <version>${chronos.version}</version>
 </dependency>
 ```
@@ -336,9 +289,11 @@ Maven central or other repo is planned.
 Modules
 -------
 * chronos-api - Timeseries processing and storage API
-* chronos-hector - Scalable timeseries storage and retreival with hector and cassandra
 * chronos-jackson - Storing timeseries objects as json
 * chronos-metrics - Storing timeseries as numeric values with some transformation utilities
+* chronos-cassandra - Scalable timeseries storage and retreival with hector and cassandra
+* chronos-redis - Storage with redis
+* chronos-aws - Storage with S3/SimpleDB for archiving
 
 Contributing
 ------------
