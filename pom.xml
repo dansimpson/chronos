@@ -19,6 +19,7 @@
 		<module>chronos-jackson</module>
 		<module>chronos-aws</module>
 		<module>chronos-redis</module>
+		<module>chronos-fdb</module>
 	</modules>
 
 	<properties>

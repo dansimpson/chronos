@@ -10,21 +10,27 @@ import org.ds.chronos.api.ChronicleBatch;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
-import org.ds.support.TestBaseWithCassandra;
+import org.ds.chronos.chronicle.FdbChronicle;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Iterators;
 
-public class CassandraChonicleTest extends TestBaseWithCassandra {
+public class FdbChronicleTest extends TestBase {
 
-	private static int count = 1;
 	private Chronicle chronicle;
 
 	@Before
 	public void create() throws ChronosException {
-		chronicle = getChronos("test").getChronicle("basicTest" + count++);
+		chronicle = new FdbChronicle(getDatabase(), "chronos-test");
+		chronicle.delete();
+	}
+
+	@After
+	public void destroy() throws ChronosException {
+		chronicle.delete();
 	}
 
 	@Test
