@@ -6,7 +6,6 @@ import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronologicalRecord;
 
 import com.foundationdb.Database;
-import com.foundationdb.KeySelector;
 import com.foundationdb.KeyValue;
 import com.foundationdb.RangeQuery;
 import com.foundationdb.ReadTransaction;
