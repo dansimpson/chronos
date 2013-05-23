@@ -29,93 +29,83 @@ import org.slf4j.LoggerFactory;
  */
 public class CassandraChronos {
 
-  private static final Logger log = LoggerFactory.getLogger(CassandraChronos.class);
+	private static final Logger log = LoggerFactory.getLogger(CassandraChronos.class);
 
-  private Cluster cluster;
-  private Keyspace keyspace;
-  private ColumnFamilyTemplate<String, Long> template;
+	private Cluster cluster;
+	private Keyspace keyspace;
+	private ColumnFamilyTemplate<String, Long> template;
 
-  public CassandraChronos(Cluster cluster, Keyspace keyspace, String cfName)
-      throws ChronosException {
-    this.cluster = cluster;
-    this.keyspace = keyspace;
-    this.template = createTemplate(cfName);
-  }
+	public CassandraChronos(Cluster cluster, Keyspace keyspace, String cfName) throws ChronosException {
+		this.cluster = cluster;
+		this.keyspace = keyspace;
+		this.template = createTemplate(cfName);
+	}
 
-  public CassandraChronos(Cluster cluster, Keyspace keyspace,
-      ColumnFamilyTemplate<String, Long> template) {
-    this.cluster = cluster;
-    this.keyspace = keyspace;
-    this.template = template;
-  }
+	public CassandraChronos(Cluster cluster, Keyspace keyspace, ColumnFamilyTemplate<String, Long> template) {
+		this.cluster = cluster;
+		this.keyspace = keyspace;
+		this.template = template;
+	}
 
-  public String getKeyspaceName() {
-    return keyspace.getKeyspaceName();
-  }
+	public String getKeyspaceName() {
+		return keyspace.getKeyspaceName();
+	}
 
-  public Chronicle getChronicle(String key) throws ChronosException {
-    return new CassandraChronicle(keyspace, template, key);
-  }
+	public CassandraChronicle getChronicle(String key) throws ChronosException {
+		return new CassandraChronicle(keyspace, template, key);
+	}
 
-  public Chronicle getChronicle(String key, PartitionPeriod period)
-      throws ChronosException {
-    return new CassandraPartitionedChronicle(keyspace, template, key, period);
-  }
+	public CassandraPartitionedChronicle getChronicle(String key, PartitionPeriod period) throws ChronosException {
+		return new CassandraPartitionedChronicle(keyspace, template, key, period);
+	}
 
-  public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder,
-      TimelineDecoder<T> decoder) throws ChronosException {
-    return new Timeline<T>(getChronicle(key), decoder, encoder);
-  }
+	public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder, TimelineDecoder<T> decoder)
+	    throws ChronosException {
+		return new Timeline<T>(getChronicle(key), decoder, encoder);
+	}
 
-  public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder,
-      TimelineDecoder<T> decoder, PartitionPeriod period)
-      throws ChronosException {
-    return new Timeline<T>(getChronicle(key, period), decoder, encoder);
-  }
+	public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder, TimelineDecoder<T> decoder,
+	    PartitionPeriod period) throws ChronosException {
+		return new Timeline<T>(getChronicle(key, period), decoder, encoder);
+	}
 
-  private ColumnFamilyTemplate<String, Long> createTemplate(String cfName)
-      throws ChronosException {
+	private ColumnFamilyTemplate<String, Long> createTemplate(String cfName) throws ChronosException {
 
-    KeyspaceDefinition ksDef = cluster.describeKeyspace(getKeyspaceName());
+		KeyspaceDefinition ksDef = cluster.describeKeyspace(getKeyspaceName());
 
-    if (ksDef == null) {
-      throw new ChronosException("Keyspace not defined!");
-    }
+		if (ksDef == null) {
+			throw new ChronosException("Keyspace not defined!");
+		}
 
-    ColumnFamilyDefinition cfDef = null;
+		ColumnFamilyDefinition cfDef = null;
 
-    List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
-    for (ColumnFamilyDefinition def : cfDefs) {
-      if (cfName.equals(def.getName())) {
-        cfDef = def;
-      }
-    }
+		List<ColumnFamilyDefinition> cfDefs = ksDef.getCfDefs();
+		for (ColumnFamilyDefinition def : cfDefs) {
+			if (cfName.equals(def.getName())) {
+				cfDef = def;
+			}
+		}
 
-    if (cfDef == null) {
+		if (cfDef == null) {
 
-      log.info("Creating column family {}", cfName);
+			log.info("Creating column family {}", cfName);
 
-      cfDef = HFactory.createColumnFamilyDefinition(getKeyspaceName(), cfName,
-          ComparatorType.LONGTYPE);
+			cfDef = HFactory.createColumnFamilyDefinition(getKeyspaceName(), cfName, ComparatorType.LONGTYPE);
 
-      cfDef.setKeyValidationClass(ComparatorType.ASCIITYPE.getClassName());
+			cfDef.setKeyValidationClass(ComparatorType.ASCIITYPE.getClassName());
 
-      cluster.addColumnFamily(cfDef, true);
-    }
+			cluster.addColumnFamily(cfDef, true);
+		}
 
-    if (cfDef.getComparatorType() != ComparatorType.LONGTYPE) {
-      throw new ChronosException(
-          "Column family exists, but does not use Long comparator!");
-    }
+		if (cfDef.getComparatorType() != ComparatorType.LONGTYPE) {
+			throw new ChronosException("Column family exists, but does not use Long comparator!");
+		}
 
-    if (!cfDef.getKeyValidationClass().equals(
-        ComparatorType.ASCIITYPE.getClassName())) {
-      throw new ChronosException(
-          "Column family exists, but key validation type is not Ascii!");
-    }
+		if (!cfDef.getKeyValidationClass().equals(ComparatorType.ASCIITYPE.getClassName())) {
+			throw new ChronosException("Column family exists, but key validation type is not Ascii!");
+		}
 
-    return new ThriftColumnFamilyTemplate<String, Long>(keyspace, cfName,
-        StringSerializer.get(), LongSerializer.get());
-  }
+		return new ThriftColumnFamilyTemplate<String, Long>(keyspace, cfName, StringSerializer.get(), LongSerializer.get());
+	}
 
 }

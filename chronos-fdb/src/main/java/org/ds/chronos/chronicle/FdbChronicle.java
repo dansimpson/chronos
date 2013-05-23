@@ -53,7 +53,7 @@ public class FdbChronicle extends Chronicle {
 		} else {
 			query = transaction.getRange(getKey(t1), getKey(t2));
 		}
-		query.streamingMode(StreamingMode.SERIAL);
+		query = query.streamingMode(StreamingMode.SERIAL);
 
 		return Iterators.transform(query.iterator(), new Function<KeyValue, ChronologicalRecord>() {
 

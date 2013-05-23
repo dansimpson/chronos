@@ -115,8 +115,8 @@ public class FdbChronicleTest extends TestBase {
 
 		chronicle.deleteRange(0, 2000);
 
-		Assert.assertEquals(2, chronicle.getNumEvents(0, 4000));
-		Assert.assertEquals(3000, MemoryChronicle.toList(chronicle.getRange(0, 4000)).get(0).getTimestamp());
+		Assert.assertEquals(2, chronicle.getNumEvents(0, 5000));
+		Assert.assertEquals(3000, MemoryChronicle.toList(chronicle.getRange(0, 5000)).get(0).getTimestamp());
 	}
 
 	@Test
