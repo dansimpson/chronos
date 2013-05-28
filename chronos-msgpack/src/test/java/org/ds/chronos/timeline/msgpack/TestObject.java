@@ -1,5 +1,6 @@
 package org.ds.chronos.timeline.msgpack;
 
+import org.ds.chronos.timeline.msgpack.Timestamped;
 import org.msgpack.annotation.Message;
 
 @Message
