@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ds.chronos</groupId>
 		<artifactId>chronos-parent</artifactId>
-		<version>1.0.5-SNAPSHOT</version>
+		<version>1.0.5</version>
 	</parent>
 
 	<artifactId>chronos-aws</artifactId>
