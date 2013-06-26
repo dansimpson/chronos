@@ -10,7 +10,7 @@ import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.ds.chronos.support.TestData;
 import org.ds.chronos.support.TestDecoder;
 import org.ds.chronos.support.TestEncoder;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,12 +21,12 @@ import com.google.common.base.Predicate;
 public class TimelineTest {
 
 	private MemoryChronicle chronicle;
-	private Timeline<TestData> store;
+	private SimpleTimeline<TestData> store;
 
 	@Before
 	public void createChronicle() {
 		chronicle = new MemoryChronicle();
-		store = new Timeline<TestData>(chronicle, new TestDecoder(), new TestEncoder());
+		store = new SimpleTimeline<TestData>(chronicle, new TestDecoder(), new TestEncoder());
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class TimelineTest {
 		}
 		store.add(list);
 
-		Optional<Double> value = store.fluid(0, count * 1000).transform(new Function<TestData, Double>() {
+		Optional<Double> value = store.query(0, count * 1000).map(new Function<TestData, Double>() {
 
 			public Double apply(TestData test) {
 				return test.value;

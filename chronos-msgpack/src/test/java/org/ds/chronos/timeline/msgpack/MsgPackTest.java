@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.ds.chronos.timeline.msgpack.MsgPackTimeline;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,7 +13,7 @@ import org.junit.Test;
 
 public class MsgPackTest {
 
-	Timeline<TestObject> timeline;
+	SimpleTimeline<TestObject> timeline;
 
 	@Before
 	public void setup() throws ChronosException {

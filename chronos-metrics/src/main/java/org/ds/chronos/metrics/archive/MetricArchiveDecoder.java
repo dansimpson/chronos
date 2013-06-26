@@ -4,8 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.ds.chronos.api.ChronologicalRecord;
+import org.ds.chronos.api.TimelineDecoder;
 import org.ds.chronos.metrics.Metric;
-import org.ds.chronos.timeline.TimelineDecoder;
 
 /**
  * 

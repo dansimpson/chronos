@@ -17,18 +17,24 @@ import org.ds.chronos.api.ChronicleBatch;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.PartitionPeriod;
-import org.ds.chronos.timeline.Timeline;
-import org.ds.chronos.timeline.TimelineDecoder;
-import org.ds.chronos.timeline.TimelineEncoder;
+import org.ds.chronos.api.Temporal;
+import org.ds.chronos.api.TimelineDecoder;
+import org.ds.chronos.api.TimelineEncoder;
+import org.ds.chronos.timeline.SimpleTimeline;
 
 @SuppressWarnings("unused")
 public class CassandraExample {
 
-	private static class TestData {
+	private static class TestData implements Temporal {
 
 		public long time;
 		public byte type;
 		public double value;
+		
+		@Override
+    public long getTimestamp() {
+	    return time;
+    }
 	}
 
 	private static class TestEncoder implements TimelineEncoder<TestData> {
@@ -161,7 +167,7 @@ public class CassandraExample {
 		// ///////////////////
 		// ///////////////////
 
-		Timeline<TestData> timeline = chronos.getTimeline("site-445-data", new TestEncoder(), new TestDecoder());
+		SimpleTimeline<TestData> timeline = chronos.getTimeline("site-445-data", new TestEncoder(), new TestDecoder());
 
 		TestData data = new TestData();
 		data.time = new Date().getTime();

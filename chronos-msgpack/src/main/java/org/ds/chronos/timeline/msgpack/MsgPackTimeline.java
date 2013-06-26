@@ -1,7 +1,7 @@
 package org.ds.chronos.timeline.msgpack;
 
 import org.ds.chronos.api.Chronicle;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.msgpack.MessagePack;
 
 /**
@@ -12,7 +12,7 @@ import org.msgpack.MessagePack;
  * @param <T>
  *          type which can be serialized to and from json
  */
-public class MsgPackTimeline<T extends Timestamped> extends Timeline<T> {
+public class MsgPackTimeline<T extends Timestamped> extends SimpleTimeline<T> {
 
 	public static final MessagePack msgpack = new MessagePack();
 

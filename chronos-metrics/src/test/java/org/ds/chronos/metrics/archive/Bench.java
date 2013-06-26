@@ -13,7 +13,7 @@ import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.PartitionPeriod;
 import org.ds.chronos.metrics.Metric;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.ds.chronos.timeline.stream.DataStream;
 import org.ds.chronos.util.Duration;
 import org.slf4j.Logger;
@@ -84,14 +84,14 @@ public class Bench {
 		benchRead(archive, new Duration("2d"), 100);
 	}
 
-	public static void benchWrite(Timeline<Metric> store, Duration period, Duration length, int batchSize) {
+	public static void benchWrite(SimpleTimeline<Metric> store, Duration period, Duration length, int batchSize) {
 		long time = System.currentTimeMillis();
 		log.info("Inserting {} worth of metrics", length.toString());
 		store.add(generate(0, length.getMillis() / period.getMillis(), period.getMillis()), batchSize);
 		log.info("Completed in {} ms", System.currentTimeMillis() - time);
 	}
 
-	public static void benchRead(Timeline<Metric> store, Duration duration, int times) {
+	public static void benchRead(SimpleTimeline<Metric> store, Duration duration, int times) {
 
 		log.info("Fetching {} of data", duration.toString());
 

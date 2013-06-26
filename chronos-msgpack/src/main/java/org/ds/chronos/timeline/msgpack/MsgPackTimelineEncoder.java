@@ -3,7 +3,7 @@ package org.ds.chronos.timeline.msgpack;
 import java.util.Iterator;
 
 import org.ds.chronos.api.ChronologicalRecord;
-import org.ds.chronos.timeline.TimelineEncoder;
+import org.ds.chronos.api.TimelineEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

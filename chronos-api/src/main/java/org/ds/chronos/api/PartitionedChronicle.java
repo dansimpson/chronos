@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 
 /**
  * 
@@ -20,7 +20,7 @@ import org.ds.chronos.timeline.Timeline;
  * then an event with date 2012-04-01 will partition onto the key: prefix-2012.
  * <p>
  * 
- * @see Timeline
+ * @see SimpleTimeline
  * @see PartitionPeriod
  * 
  * TODO: Threaded prefetching?

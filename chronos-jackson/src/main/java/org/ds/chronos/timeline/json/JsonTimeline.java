@@ -1,7 +1,7 @@
 package org.ds.chronos.timeline.json;
 
 import org.ds.chronos.api.Chronicle;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
  *
  * @param <T> type which can be serialized to and from json
  */
-public class JsonTimeline<T extends Timestamped> extends Timeline<T> {
+public class JsonTimeline<T extends Timestamped> extends SimpleTimeline<T> {
 
   /**
    * Create a new JSON Timeline

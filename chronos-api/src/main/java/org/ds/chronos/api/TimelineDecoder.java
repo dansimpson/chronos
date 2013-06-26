@@ -1,8 +1,7 @@
-package org.ds.chronos.timeline;
+package org.ds.chronos.api;
 
 import java.util.Iterator;
 
-import org.ds.chronos.api.ChronologicalRecord;
 
 /**
  * 

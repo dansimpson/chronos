@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.ds.chronos.api.ChronologicalRecord;
-import org.ds.chronos.timeline.TimelineEncoder;
+import org.ds.chronos.api.TimelineEncoder;
 
 public class TestEncoder implements TimelineEncoder<TestData> {
 

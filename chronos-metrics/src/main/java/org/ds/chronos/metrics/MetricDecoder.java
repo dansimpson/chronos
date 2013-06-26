@@ -3,7 +3,7 @@ package org.ds.chronos.metrics;
 import java.util.Iterator;
 
 import org.ds.chronos.api.ChronologicalRecord;
-import org.ds.chronos.timeline.TimelineDecoder;
+import org.ds.chronos.api.TimelineDecoder;
 
 /**
  * Streaming decoder for metrics stored on a timeline.

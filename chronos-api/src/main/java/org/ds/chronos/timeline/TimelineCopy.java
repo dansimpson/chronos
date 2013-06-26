@@ -2,6 +2,10 @@ package org.ds.chronos.timeline;
 
 import java.util.Iterator;
 
+import org.ds.chronos.api.Temporal;
+import org.ds.chronos.api.Timeline;
+
+
 /**
  * Copy utility for Timelines
  * 
@@ -9,7 +13,7 @@ import java.util.Iterator;
  * 
  * @param <T>
  */
-public class TimelineCopy<T> {
+public class TimelineCopy<T extends Temporal> {
 
 	private final Timeline<T> source;
 	private final Timeline<T> destination;

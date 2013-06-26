@@ -15,9 +15,7 @@ import me.prettyprint.hector.api.factory.HFactory;
 
 import org.ds.chronos.chronicle.CassandraChronicle;
 import org.ds.chronos.chronicle.CassandraPartitionedChronicle;
-import org.ds.chronos.timeline.Timeline;
-import org.ds.chronos.timeline.TimelineDecoder;
-import org.ds.chronos.timeline.TimelineEncoder;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,14 +57,14 @@ public class CassandraChronos {
 		return new CassandraPartitionedChronicle(keyspace, template, key, period);
 	}
 
-	public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder, TimelineDecoder<T> decoder)
-	    throws ChronosException {
-		return new Timeline<T>(getChronicle(key), decoder, encoder);
+	public <T extends Temporal> SimpleTimeline<T> getTimeline(String key, TimelineEncoder<T> encoder,
+	    TimelineDecoder<T> decoder) throws ChronosException {
+		return new SimpleTimeline<T>(getChronicle(key), decoder, encoder);
 	}
 
-	public <T> Timeline<T> getTimeline(String key, TimelineEncoder<T> encoder, TimelineDecoder<T> decoder,
-	    PartitionPeriod period) throws ChronosException {
-		return new Timeline<T>(getChronicle(key, period), decoder, encoder);
+	public <T extends Temporal> SimpleTimeline<T> getTimeline(String key, TimelineEncoder<T> encoder,
+	    TimelineDecoder<T> decoder, PartitionPeriod period) throws ChronosException {
+		return new SimpleTimeline<T>(getChronicle(key, period), decoder, encoder);
 	}
 
 	private ColumnFamilyTemplate<String, Long> createTemplate(String cfName) throws ChronosException {

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 public class JsonTest {
 
-	Timeline<JsonTestObject> timeline;
+	SimpleTimeline<JsonTestObject> timeline;
 
 	@Before
 	public void setup() throws ChronosException {

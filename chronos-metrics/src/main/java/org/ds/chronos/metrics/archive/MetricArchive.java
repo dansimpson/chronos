@@ -4,10 +4,10 @@ import java.util.Iterator;
 
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.metrics.Metric;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 import org.ds.chronos.util.Duration;
 
-public class MetricArchive extends Timeline<Metric> {
+public class MetricArchive extends SimpleTimeline<Metric> {
 
 	protected Duration window;
 

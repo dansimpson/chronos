@@ -56,6 +56,9 @@ public class MemoryChronicle extends Chronicle {
 
 	@Override
 	public long getNumEvents(long t1, long t2) {
+		if (items.isEmpty()) {
+			return 0;
+		}
 		return items.subSet(low(t1), true, high(t2), true).size();
 	}
 
@@ -84,11 +87,11 @@ public class MemoryChronicle extends Chronicle {
 		}
 		return result;
 	}
-	
+
 	public int size() {
 		return items.size();
 	}
-	
+
 	public TreeSet<ChronologicalRecord> all() {
 		return items;
 	}

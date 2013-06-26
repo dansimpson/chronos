@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 
 /**
  * 
@@ -15,7 +15,7 @@ import org.ds.chronos.timeline.Timeline;
  * columns, fetching ranges, deleting ranges, and counting ranges. Events are
  * composed of a long timestamp value and a byte[] of data.
  * <p>
- * For a higher level of abstraction, see {@link Timeline}
+ * For a higher level of abstraction, see {@link SimpleTimeline}
  * <p>
  * 
  * @see CassandraChronicle

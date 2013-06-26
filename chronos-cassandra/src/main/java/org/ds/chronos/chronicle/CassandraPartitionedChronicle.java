@@ -7,7 +7,7 @@ import org.ds.chronos.api.CassandraChronos;
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.PartitionPeriod;
 import org.ds.chronos.api.PartitionedChronicle;
-import org.ds.chronos.timeline.Timeline;
+import org.ds.chronos.timeline.SimpleTimeline;
 
 /**
  * 
@@ -16,7 +16,7 @@ import org.ds.chronos.timeline.Timeline;
  * A cassandra chronicle which partitions data onto many keys.
  * <p>
  * 
- * @see Timeline
+ * @see SimpleTimeline
  * @see PartitionPeriod
  * @see PartitionedChronicle
  * @see CassandraChronos#getChronicle(String, PartitionPeriod)
