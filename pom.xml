@@ -19,6 +19,7 @@
 		<module>chronos-aws</module>
 		<module>chronos-redis</module>
 		<module>chronos-msgpack</module>
+		<module>chronos-datastax</module>
 	</modules>
 
 	<properties>

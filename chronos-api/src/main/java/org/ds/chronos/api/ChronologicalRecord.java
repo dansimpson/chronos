@@ -19,6 +19,13 @@ public class ChronologicalRecord implements Comparable<ChronologicalRecord> {
 		this.data = data;
 	}
 
+	public ChronologicalRecord(long timestamp, ByteBuffer buffer) {
+		super();
+		this.timestamp = timestamp;
+		this.data = new byte[buffer.remaining()];
+		buffer.get(data);
+	}
+
 	/**
 	 * @return the timestamp
 	 */
@@ -50,10 +57,9 @@ public class ChronologicalRecord implements Comparable<ChronologicalRecord> {
 	public int getByteSize() {
 		return data.length;
 	}
-	
+
 	public String toString() {
 		return String.format("%s - %d bytes", timestamp, getByteSize());
 	}
-
 
 }

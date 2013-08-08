@@ -29,8 +29,8 @@ import org.ds.chronos.timeline.SimpleTimeline;
 public abstract class Chronicle {
 
   public static final Charset CHARSET = Charset.forName("UTF8");
-  public static final int WRITE_PAGE_SIZE = 1024;
-  public static final int READ_PAGE_SIZE = 2048;
+  public static int WRITE_PAGE_SIZE = 1024;
+  public static int READ_PAGE_SIZE = 2048;
 
   /**
    * Add a single column to the Chronicle

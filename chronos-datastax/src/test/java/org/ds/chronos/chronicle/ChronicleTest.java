@@ -1,4 +1,4 @@
-package org.ds.chronos;
+package org.ds.chronos.chronicle;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -10,21 +10,20 @@ import org.ds.chronos.api.ChronicleBatch;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.ChronosException;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
-import org.ds.support.TestBaseWithCassandra;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Iterators;
 
-public class CassandraChonicleTest extends TestBaseWithCassandra {
+public class ChronicleTest extends TestBase {
 
 	private static int count = 1;
 	private Chronicle chronicle;
 
 	@Before
 	public void create() throws ChronosException {
-		chronicle = getChronos("test").getChronicle("basicTest" + count++);
+		chronicle = getChronicle("basicTest" + count++);
 	}
 
 	@Test
@@ -115,10 +114,15 @@ public class CassandraChonicleTest extends TestBaseWithCassandra {
 
 	@Test
 	public void shouldDeleteRow() throws ChronosException {
+
+		Chronicle other = getChronicle("nottest");
+		other.add(1000, "ok");
+
 		chronicle.add(1000, "test");
 		chronicle.delete();
 
 		Assert.assertEquals(0, chronicle.getNumEvents(0, 2000));
+		Assert.assertEquals(1, other.getNumEvents(0, 2000));
 	}
 
 	@Test
