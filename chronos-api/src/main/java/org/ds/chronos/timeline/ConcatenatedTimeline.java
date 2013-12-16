@@ -17,6 +17,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 /**
  * A Timeline composed of other Timelines, each of which hold events for a given TimeFrame or "scope"
@@ -78,16 +79,22 @@ public class ConcatenatedTimeline<T extends Temporal> extends Timeline<T> {
 		getTimeline(item.getTimestamp()).add(item);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Iterator<T> buildIterator(long t1, long t2, final int batchSize) {
-		return Iterators.concat(Iterables.concat(
-		    Iterables.transform(fit(t1, t2), new Function<ScopedTimeline<T>, Iterator<T>>() {
+
+		List<Iterator<T>> items = Lists.newArrayList(Iterables.transform(fit(t1, t2),
+		    new Function<ScopedTimeline<T>, Iterator<T>>() {
 
 			    public Iterator<T> apply(ScopedTimeline<T> t) {
 				    return t.timeline.buildIterator(t.scope.getStart(), t.scope.getEnd(), batchSize);
 			    }
-		    })).iterator());
+		    }));
+
+		if (t2 < t1) {
+			items = Lists.reverse(items);
+		}
+
+		return Iterators.concat(items.iterator());
 	}
 
 	@Override

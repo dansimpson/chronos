@@ -72,6 +72,15 @@ public class ConcatenatedTimelineTest extends TestBase {
 		store.add(new TestData(100, (byte) 0, 20d));
 		store.add(new TestData(1100, (byte) 0, 20d));
 		Assert.assertEquals(2, Iterables.size(store.iterable(0, 2000)));
+		Assert.assertEquals(100, store.query(0, 2000).first().get().getTimestamp());
+	}
+
+	@Test
+	public void iterateReverse() throws ChronosException {
+		store.add(new TestData(100, (byte) 0, 20d));
+		store.add(new TestData(1100, (byte) 0, 20d));
+		Assert.assertEquals(2, Iterables.size(store.iterable(2000, 0)));
+		Assert.assertEquals(1100, store.query(2000, 0).first().get().getTimestamp());
 	}
 
 	@Test
