@@ -74,6 +74,12 @@ public class SimpleDBChronicle extends Chronicle {
 	}
 
 	private String getQuery(String projection, long t1, long t2) {
+		if (t1 > t2) {
+			return String.format(
+			    "SELECT %s FROM `%s` WHERE itemName() >= '%013d' AND itemName() <= '%013d' ORDER BY itemName() DESC",
+			    projection, key, t2, t1);
+		}
+
 		return String.format("SELECT %s FROM `%s` WHERE itemName() >= '%013d' AND itemName() <= '%013d'", projection, key,
 		    t1, t2);
 	}

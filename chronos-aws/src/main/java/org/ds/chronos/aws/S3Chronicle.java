@@ -5,12 +5,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -36,18 +36,23 @@ import com.google.common.io.ByteStreams;
 public class S3Chronicle extends Chronicle {
 
 	private static final int BUFSIZE = 1024;
-	private static final Logger log = LoggerFactory.getLogger(S3Chronicle.class);
 
 	final AmazonS3Client client;
 	final String bucket;
 	final String key;
 
 	final MemoryChronicle records;
+	final boolean gzip;
 
 	public S3Chronicle(AmazonS3Client client, String bucket, String key) {
+		this(client, bucket, key, false);
+	}
+
+	public S3Chronicle(AmazonS3Client client, String bucket, String key, boolean gzip) {
 		this.client = client;
 		this.bucket = bucket;
 		this.key = key;
+		this.gzip = gzip;
 		this.records = new MemoryChronicle();
 	}
 
@@ -113,6 +118,16 @@ public class S3Chronicle extends Chronicle {
 	}
 
 	private synchronized void save() {
+		byte[] result = encode();
+
+		ObjectMetadata meta = new ObjectMetadata();
+		meta.setContentLength(result.length);
+		meta.setContentType("application/octet-stream");
+
+		client.putObject(bucket, key, new ByteArrayInputStream(result), meta);
+	}
+
+	protected byte[] encode() {
 		ByteArrayDataOutput out = ByteStreams.newDataOutput();
 		out.writeInt(records.size());
 
@@ -122,13 +137,20 @@ public class S3Chronicle extends Chronicle {
 			out.write(record.getData());
 		}
 
-		byte[] result = out.toByteArray();
+		if (!gzip) {
+			return out.toByteArray();
+		}
 
-		ObjectMetadata meta = new ObjectMetadata();
-		meta.setContentLength(result.length);
-		meta.setContentType("application/octet-stream");
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(output);
+			gzipOutputStream.write(out.toByteArray());
+			gzipOutputStream.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 
-		client.putObject(bucket, key, new ByteArrayInputStream(result), meta);
+		return output.toByteArray();
 	}
 
 	/**
@@ -144,23 +166,38 @@ public class S3Chronicle extends Chronicle {
 			return ByteBuffer.allocate(0);
 		}
 
-		S3ObjectInputStream stream = object.getObjectContent();
-
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		S3ObjectInputStream input = object.getObjectContent();
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
 		try {
-			int size;
-			byte[] tmp = new byte[BUFSIZE];
-			while ((size = stream.read(tmp)) != -1) {
-				buffer.write(tmp, 0, size);
+			if (gzip) {
+				readGzipped(input, output);
+			} else {
+				read(input, output);
 			}
-			stream.close();
+			input.close();
 		} catch (IOException e) {
-			log.warn("Error closing S3 stream");
-			log.debug("IOException on S3 close", e);
+			throw new RuntimeException(e);
 		}
 
-		return ByteBuffer.wrap(buffer.toByteArray());
+		return ByteBuffer.wrap(output.toByteArray());
 	}
 
+	private void read(S3ObjectInputStream input, ByteArrayOutputStream output) throws IOException {
+		int size;
+		byte[] tmp = new byte[BUFSIZE];
+		while ((size = input.read(tmp)) != -1) {
+			output.write(tmp, 0, size);
+		}
+	}
+
+	private void readGzipped(S3ObjectInputStream input, ByteArrayOutputStream output) throws IOException {
+		GZIPInputStream gzip = new GZIPInputStream(input);
+		int size;
+		byte[] tmp = new byte[BUFSIZE];
+		while ((size = gzip.read(tmp)) != -1) {
+			output.write(tmp, 0, size);
+		}
+		gzip.close();
+	}
 }

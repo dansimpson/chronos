@@ -5,7 +5,6 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronologicalRecord;
 import org.ds.chronos.api.chronicle.MemoryChronicle;
 import org.junit.Assume;
@@ -32,7 +31,7 @@ public class S3ChronicleTest {
 	}
 
 	AmazonS3Client client;
-	Chronicle chronicle;
+	S3Chronicle chronicle;
 	String bucket = "chronos-tests";
 
 	public AmazonS3Client getClient() {
@@ -85,7 +84,8 @@ public class S3ChronicleTest {
 		}
 		long t2 = System.currentTimeMillis();
 
-		System.out.printf("%d items loaded and decoded %d times in %d ms", items, iters, t2 - t1);
+		System.out.printf("%d items loaded and decoded %d times in %d ms - %d bytes\n", items, iters, t2 - t1,
+		    chronicle.encode().length);
 	}
 
 	@Test
@@ -114,6 +114,28 @@ public class S3ChronicleTest {
 	public void testCount() {
 		chronicle.add(getTestItemList(0, 1000, 100));
 		Assert.assertEquals(50, getChronicle().getNumEvents(1, 50000));
+	}
+
+	@Test
+	public void testGzip() {
+		int items = 1440 * 30;
+		int iters = 1;
+
+		S3Chronicle chronicle = new S3Chronicle(client, bucket, "test", true);
+
+		chronicle.add(getTestItemList(0, 1000, items));
+		byte[] data = chronicle.encode();
+
+		Assert.assertTrue(data.length > 0);
+
+		long t1 = System.currentTimeMillis();
+		for (int i = 0; i < iters; i++) {
+			Assert.assertEquals(items,
+			    new S3Chronicle(client, bucket, "test", true).getNumEvents(0, System.currentTimeMillis()));
+		}
+		long t2 = System.currentTimeMillis();
+
+		System.out.printf("%d items loaded and decoded %d times in %d ms - %d bytes\n", items, iters, t2 - t1, data.length);
 	}
 
 }
