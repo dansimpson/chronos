@@ -122,7 +122,12 @@ public class S3Chronicle extends Chronicle {
 
 		ObjectMetadata meta = new ObjectMetadata();
 		meta.setContentLength(result.length);
-		meta.setContentType("application/octet-stream");
+
+		if (gzip) {
+			meta.setContentType("application/gzip");
+		} else {
+			meta.setContentType("application/octet-stream");
+		}
 
 		client.putObject(bucket, key, new ByteArrayInputStream(result), meta);
 	}

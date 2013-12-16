@@ -31,8 +31,6 @@ public class SimpleDBIterator implements Iterator<ChronologicalRecord> {
 			return;
 		}
 
-		System.out.println("Loading...");
-
 		SelectResult result = client.select(request);
 		if (result.getNextToken() == null) {
 			finished = true;
