@@ -59,7 +59,11 @@ public class MemoryChronicle extends Chronicle {
 		if (items.isEmpty()) {
 			return 0;
 		}
-		return items.subSet(low(t1), true, high(t2), true).size();
+		try {
+			return items.subSet(low(t1), true, high(t2), true).size();
+		} catch (Throwable t) {
+			return 0;
+		}
 	}
 
 	@Override
