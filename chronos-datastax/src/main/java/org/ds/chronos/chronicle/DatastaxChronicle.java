@@ -4,22 +4,18 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.gte;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.lte;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.ds.chronos.api.Chronicle;
 import org.ds.chronos.api.ChronologicalRecord;
 
-import com.datastax.driver.core.Query;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SimpleStatement;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.base.Function;
@@ -37,59 +33,95 @@ public class DatastaxChronicle extends Chronicle {
 	/**
 	 * Compact storage tends to be faster for this type of data
 	 */
-	private static final String CREATE_STATEMENT = "CREATE TABLE %s (name varchar, time bigint, data blob, PRIMARY KEY(name, time)) WITH COMPACT STORAGE";
+	private static final String CREATE_STATEMENT = "CREATE TABLE %s (%s varchar, %s bigint, %s blob, PRIMARY KEY(%2$s, %3$s)) WITH COMPACT STORAGE";
+
+	/**
+	 * Structure to define Table, Key, Clustering Column, Data names
+	 * 
+	 * @author Dan Simpson
+	 *
+	 */
+	public static final class Settings {
+
+		protected final String table;
+		protected final String key;
+		protected final String cluster;
+		protected final String data;
+
+		protected final Session session;
+		private PreparedStatement insert;
+		// protected final PreparedStatement count;
+
+		public Settings(Session session, String table, String key, String cluster, String data) {
+			super();
+			this.session = session;
+			this.table = table;
+			this.key = key; // series
+			this.cluster = cluster; // timestamp
+			this.data = data; // value
+
+		}
+
+		protected PreparedStatement insert() {
+			if (insert == null) {
+				synchronized (this) {
+					insert = session.prepare(
+					    String.format("INSERT INTO %s (%s, %s, %s) VALUES (?, ?, ?) USING TTL ?", table, key, cluster, data));
+				}
+			}
+			return insert;
+		}
+
+		public static Settings legacy(Session session, String table) {
+			return new Settings(session, table, "key", "column1", "value");
+		}
+
+		public static Settings modern(Session session, String table) {
+			return new Settings(session, table, "name", "time", "data");
+		}
+
+	}
 
 	protected final String name;
-	protected final String table;
+	protected final Settings table;
 	protected final Session session;
 	protected final int ttl;
 
-	public DatastaxChronicle(Session session, String table, String name) {
+	public DatastaxChronicle(Session session, Settings table, String name) {
 		this(session, table, name, 0);
 	}
 
-	public DatastaxChronicle(Session session, String table, String name, int ttl) {
+	public DatastaxChronicle(Session session, Settings table, String name, int ttl) {
 		this.session = session;
 		this.table = table;
 		this.name = name;
 		this.ttl = ttl;
 
 		// Increasing this can decrease throughput
-		WRITE_PAGE_SIZE = 64;
+		WRITE_PAGE_SIZE = 2048;
 	}
 
 	@Override
 	public void add(ChronologicalRecord column) {
-		Insert query = QueryBuilder.insertInto(table).value("name", name).value("time", column.getTimestamp())
-		    .value("data", column.getValueBytes());
-		if (ttl > 0) {
-			query.using(ttl(ttl));
-		}
-		session.execute(query);
+		session.execute(table.insert().bind(name, column.getTimestamp(), column.getValueBytes(), ttl));
 	}
 
 	@Override
 	public void add(Iterator<ChronologicalRecord> items, int pageSize) {
+		PreparedStatement insert = table.insert();
 
-		List<Statement> statements = new ArrayList<Statement>();
+		BatchStatement statement = new BatchStatement();
 		while (items.hasNext()) {
 			ChronologicalRecord item = items.next();
-
-			Insert query = QueryBuilder.insertInto(table).value("name", name).value("time", item.getTimestamp())
-			    .value("data", item.getValueBytes());
-			if (ttl > 0) {
-				query.using(ttl(ttl));
-			}
-			statements.add(new SimpleStatement(query.toString()));
-
-			if (statements.size() >= pageSize) {
-				session.execute(QueryBuilder.batch(statements.toArray(new Statement[0])));
-				statements.clear();
+			statement.add(insert.bind(name, item.getTimestamp(), item.getValueBytes(), ttl));
+			if (statement.size() >= pageSize) {
+				session.execute(statement);
+				statement.clear();
 			}
 		}
 
-		if (!statements.isEmpty()) {
-			session.execute(QueryBuilder.batch(statements.toArray(new Statement[0])));
+		if (statement.size() > 0) {
+			session.execute(statement);
 		}
 	}
 
@@ -97,7 +129,8 @@ public class DatastaxChronicle extends Chronicle {
 	public long getNumEvents(long t1, long t2) {
 		assert (t1 <= t2);
 
-		Query query = select().countAll().from(table).where(eq("name", name)).and(gte("time", t1)).and(lte("time", t2));
+		Where query = select().countAll().from(table.table).where(eq(table.key, name)).and(gte(table.cluster, t1))
+		    .and(lte(table.cluster, t2));
 		ResultSet result = session.execute(query);
 		if (result.isExhausted()) {
 			return 0;
@@ -107,13 +140,13 @@ public class DatastaxChronicle extends Chronicle {
 
 	@Override
 	public boolean isEventRecorded(long time) {
-		Query query = QueryBuilder.select().from(table).where(eq("name", name)).and(eq("time", time));
+		Where query = QueryBuilder.select().from(table.table).where(eq(table.key, name)).and(eq(table.cluster, time));
 		return !session.execute(query).isExhausted();
 	}
 
 	@Override
 	public void delete() {
-		Query query = QueryBuilder.delete().from(table).where(eq("name", name));
+		Delete.Where query = QueryBuilder.delete().from(table.table).where(eq(table.key, name));
 		session.execute(query);
 	}
 
@@ -123,11 +156,11 @@ public class DatastaxChronicle extends Chronicle {
 		long begin = Math.min(t1, t2);
 		long end = Math.max(t1, t2);
 
-		Where query = select().column("time").column("data").from(table).where(eq("name", name)).and(gte("time", begin))
-		    .and(lte("time", end));
+		Where query = select().column(table.cluster).column(table.data).from(table.table).where(eq(table.key, name))
+		    .and(gte(table.cluster, begin)).and(lte(table.cluster, end));
 
 		if (t1 > t2) {
-			query.orderBy(QueryBuilder.desc("time"));
+			query.orderBy(QueryBuilder.desc(table.cluster));
 		}
 
 		ResultSet set = session.execute(query);
@@ -145,15 +178,17 @@ public class DatastaxChronicle extends Chronicle {
 		Iterator<ChronologicalRecord> range = getRange(t1, t2);
 		while (range.hasNext()) {
 			ChronologicalRecord record = range.next();
-			session.execute(QueryBuilder.delete().from(table).where(eq("name", name)).and(eq("time", record.getTimestamp())));
+			session.execute(QueryBuilder.delete().from(table.table).where(eq(table.key, name))
+			    .and(eq(table.cluster, record.getTimestamp())));
 		}
 	}
 
 	/**
 	 * Create the schema for the current session and table name, using compact storage and defaults
 	 */
-	public void createTable() {
-		session.execute(String.format(CREATE_STATEMENT, table));
+	public static void createTable(Settings settings) {
+		settings.session
+		    .execute(String.format(CREATE_STATEMENT, settings.table, settings.key, settings.cluster, settings.data));
 	}
 
 }

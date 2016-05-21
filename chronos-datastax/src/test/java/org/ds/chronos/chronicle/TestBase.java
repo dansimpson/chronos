@@ -1,6 +1,7 @@
 package org.ds.chronos.chronicle;
 
 import org.ds.chronos.api.ChronosException;
+import org.ds.chronos.chronicle.DatastaxChronicle.Settings;
 import org.junit.BeforeClass;
 
 import com.datastax.driver.core.Cluster;
@@ -12,7 +13,7 @@ public class TestBase {
 	protected static Session session;
 
 	protected static final String keyspace = "staxtests";
-	protected static final String table = "testable";
+	protected static Settings settings;
 
 	@BeforeClass
 	public static void setup() throws ChronosException {
@@ -27,16 +28,18 @@ public class TestBase {
 
 			session.execute(String.format(
 			    "CREATE KEYSPACE %s WITH replication= {'class':'SimpleStrategy', 'replication_factor':1};", keyspace));
-			session.shutdown();
+			session.close();
 		}
 
 		session = cluster.connect(keyspace);
+		
+		settings = Settings.modern(session, "testable");
 
-		getChronicle("test").createTable();
+		DatastaxChronicle.createTable(settings);
 	}
 
 	public static DatastaxChronicle getChronicle(String name) throws ChronosException {
-		return new DatastaxChronicle(session, table, name);
+		return new DatastaxChronicle(session, settings, name);
 	}
 
 }
