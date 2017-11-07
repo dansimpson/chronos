@@ -1,0 +1,14 @@
+
+description = 'chronos redis'
+dependencies {
+  compile project(':chronos-api')
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.6.6'
+    compile group: 'redis.clients', name: 'jedis', version:'2.1.0'
+    testCompile group: 'redis.clients', name: 'jedis', version:'2.1.0', classifier:'sources'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

@@ -1,0 +1,14 @@
+rootProject.name = 'chronos-parent'
+include ':chronos-api'
+include ':chronos-jackson'
+include ':chronos-aws'
+include ':chronos-redis'
+include ':chronos-msgpack'
+include ':chronos-datastax'
+
+project(':chronos-api').projectDir = "$rootDir/chronos-api" as File
+project(':chronos-jackson').projectDir = "$rootDir/chronos-jackson" as File
+project(':chronos-aws').projectDir = "$rootDir/chronos-aws" as File
+project(':chronos-redis').projectDir = "$rootDir/chronos-redis" as File
+project(':chronos-msgpack').projectDir = "$rootDir/chronos-msgpack" as File
+project(':chronos-datastax').projectDir = "$rootDir/chronos-datastax" as File

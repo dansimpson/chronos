@@ -4,3 +4,7 @@ target
 release.properties
 *.releaseBackup
 .classpath
+build/
+.gradle/
+*/.gradle/
+*/build/

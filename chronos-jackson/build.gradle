@@ -1,0 +1,15 @@
+
+description = 'chronos jackson'
+dependencies {
+  compile project(':chronos-api')
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.6.6'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version:'2.1.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.1.4'
+    testCompile group: 'org.mockito', name: 'mockito-all', version:'1.9.5'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

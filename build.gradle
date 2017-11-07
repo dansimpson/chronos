@@ -1,0 +1,56 @@
+allprojects  {
+  apply plugin: 'maven'
+  apply plugin: 'maven-publish'
+  group = 'org.ds.chronos'
+  version = '1.0.13'
+}
+
+subprojects {
+  apply plugin: 'java'
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
+  tasks.withType(JavaCompile) {
+  	options.encoding = 'UTF-8'
+  }
+
+  task packageSources(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+  }
+
+  artifacts.archives packageSources
+
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    testCompile group: 'junit', name: 'junit', version:'4.10'
+  }
+
+  publishing {
+    repositories {
+      maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/dansimpson/chronos")
+        credentials {
+            username = System.getenv("GPR_USER") ?: 'dansimpson'
+            password = System.getenv("GPR_AUTH_TOKEN")
+        }
+      }
+    }
+    publications {
+      gpr(MavenPublication) {
+        groupId group
+        // artifactId "influx-protocol"
+        version version
+        from components.java
+      }
+    }
+  }
+
+
+}

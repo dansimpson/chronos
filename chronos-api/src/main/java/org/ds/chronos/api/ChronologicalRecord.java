@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
  * @author Dan Simpson
  * 
  */
-public class ChronologicalRecord implements Comparable<ChronologicalRecord> {
+public class ChronologicalRecord implements Comparable<ChronologicalRecord>, Temporal {
 
 	private long timestamp;
 	private byte[] data;

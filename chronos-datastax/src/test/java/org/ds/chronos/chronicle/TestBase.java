@@ -32,10 +32,10 @@ public class TestBase {
 		}
 
 		session = cluster.connect(keyspace);
-		
-		settings = Settings.modern(session, "testable");
 
-		DatastaxChronicle.createTable(settings);
+		settings = Settings.modern("testable");
+
+		DatastaxChronicle.createTable(session, settings);
 	}
 
 	public static DatastaxChronicle getChronicle(String name) throws ChronosException {
