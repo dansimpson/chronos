@@ -1,0 +1,20 @@
+name: publish artifact
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Publish
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8.0.x
+      - uses: eskatos/gradle-command-action@v1
+        env:
+          GPR_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          arguments: clean publish

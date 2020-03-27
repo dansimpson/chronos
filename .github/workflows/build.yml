@@ -1,0 +1,31 @@
+name: run tests
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      casandra:
+        image: cassandra
+        ports:
+        - 9042:9042
+        - 7000:7000
+        - 7199:7199
+      redis:
+        image: redis
+        ports:
+        - 6379:6379
+
+    strategy:
+      matrix:
+        java: [ 8.0.x ]
+    name: Java ${{ matrix.java }} sample
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: clean test

@@ -1,0 +1,13 @@
+
+description = 'chronos msgpack'
+dependencies {
+  compile project(':chronos-api')
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.6.6'
+    compile group: 'org.msgpack', name: 'msgpack', version:'0.6.7'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

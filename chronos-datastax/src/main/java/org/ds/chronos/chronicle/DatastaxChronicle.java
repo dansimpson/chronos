@@ -48,13 +48,10 @@ public class DatastaxChronicle extends Chronicle {
 		protected final String cluster;
 		protected final String data;
 
-		protected final Session session;
 		private PreparedStatement insert;
-		// protected final PreparedStatement count;
 
-		public Settings(Session session, String table, String key, String cluster, String data) {
+		public Settings(String table, String key, String cluster, String data) {
 			super();
-			this.session = session;
 			this.table = table;
 			this.key = key; // series
 			this.cluster = cluster; // timestamp
@@ -62,7 +59,7 @@ public class DatastaxChronicle extends Chronicle {
 
 		}
 
-		protected PreparedStatement insert() {
+		protected PreparedStatement insert(Session session) {
 			if (insert == null) {
 				synchronized (this) {
 					insert = session.prepare(
@@ -72,12 +69,12 @@ public class DatastaxChronicle extends Chronicle {
 			return insert;
 		}
 
-		public static Settings legacy(Session session, String table) {
-			return new Settings(session, table, "key", "column1", "value");
+		public static Settings legacy(String table) {
+			return new Settings(table, "key", "column1", "value");
 		}
 
-		public static Settings modern(Session session, String table) {
-			return new Settings(session, table, "name", "time", "data");
+		public static Settings modern(String table) {
+			return new Settings(table, "name", "time", "data");
 		}
 
 	}
@@ -103,12 +100,12 @@ public class DatastaxChronicle extends Chronicle {
 
 	@Override
 	public void add(ChronologicalRecord column) {
-		session.execute(table.insert().bind(name, column.getTimestamp(), column.getValueBytes(), ttl));
+		session.execute(table.insert(session).bind(name, column.getTimestamp(), column.getValueBytes(), ttl));
 	}
 
 	@Override
 	public void add(Iterator<ChronologicalRecord> items, int pageSize) {
-		PreparedStatement insert = table.insert();
+		PreparedStatement insert = table.insert(session);
 
 		BatchStatement statement = new BatchStatement();
 		while (items.hasNext()) {
@@ -186,9 +183,8 @@ public class DatastaxChronicle extends Chronicle {
 	/**
 	 * Create the schema for the current session and table name, using compact storage and defaults
 	 */
-	public static void createTable(Settings settings) {
-		settings.session
-		    .execute(String.format(CREATE_STATEMENT, settings.table, settings.key, settings.cluster, settings.data));
+	public static void createTable(Session session, Settings settings) {
+		session.execute(String.format(CREATE_STATEMENT, settings.table, settings.key, settings.cluster, settings.data));
 	}
 
 }

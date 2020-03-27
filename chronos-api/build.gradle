@@ -1,0 +1,11 @@
+
+description = 'chronos api'
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version:'19.0'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

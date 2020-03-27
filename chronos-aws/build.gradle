@@ -1,0 +1,16 @@
+
+description = 'chronos aws tools'
+dependencies {
+  compile project(':chronos-api')
+    compile group: 'com.amazonaws', name: 'aws-java-sdk', version:'1.4.2.1'
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.6.6'
+    compile group: 'com.google.guava', name: 'guava', version:'19.0'
+    testCompile group: 'com.amazonaws', name: 'aws-java-sdk', version:'1.4.2.1', classifier:'sources'
+    testCompile group: 'org.mockito', name: 'mockito-all', version:'1.9.5'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

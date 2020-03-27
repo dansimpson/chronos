@@ -18,6 +18,26 @@ import com.google.common.collect.Iterators;
 public class PartitionPeriodTest extends TestBase {
 
 	@Test
+	public void shouldGenerateHourKey() throws ChronosException {
+		Assert.assertEquals("key-2018-10-08-18", PartitionPeriod.HOUR.getPeriodKey("key", 1539023421354l));
+	}
+
+	@Test
+	public void shouldGenerateRowKeysForHours() throws ChronosException {
+		PartitionPeriod period = PartitionPeriod.HOUR;
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(2012, 0, 1, 0, 0, 0);
+		Date d1 = calendar.getTime();
+		calendar.set(2012, 0, 2, 23, 59, 59);
+		Date d2 = calendar.getTime();
+
+		List<String> keys = period.getPeriodKeys("key", d1, d2);
+		Assert.assertEquals("key-2012-01-01-00", keys.get(0));
+		Assert.assertEquals("key-2012-01-02-23", keys.get(keys.size() - 1));
+	}
+
+	@Test
 	public void shouldGenerateRowKeysForDays() throws ChronosException {
 		PartitionPeriod period = PartitionPeriod.DAY;
 
